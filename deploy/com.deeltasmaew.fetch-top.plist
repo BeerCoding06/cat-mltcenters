@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  macOS schedule: fetch Shopee best sellers every day at 07:00.
+  If the Mac is asleep at 07:00, launchd runs it once when the Mac wakes up.
+
+  Install:   cp deploy/com.deeltasmaew.fetch-top.plist ~/Library/LaunchAgents/
+             launchctl load ~/Library/LaunchAgents/com.deeltasmaew.fetch-top.plist
+  Remove:    launchctl unload ~/Library/LaunchAgents/com.deeltasmaew.fetch-top.plist
+             rm ~/Library/LaunchAgents/com.deeltasmaew.fetch-top.plist
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.deeltasmaew.fetch-top</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Applications/MAMP/bin/php/php8.2.0/bin/php</string>
+    <string>/Applications/MAMP/htdocs/project-money/bin/fetch-top-products.php</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>7</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>/Applications/MAMP/htdocs/project-money/data/fetch.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Applications/MAMP/htdocs/project-money/data/fetch.log</string>
+</dict>
+</plist>

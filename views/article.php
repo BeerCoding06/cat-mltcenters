@@ -1,0 +1,104 @@
+<?php
+/**
+ * @var array $article
+ * @var array $rendered  ['html' => …, 'toc' => …]
+ * @var bool  $isPreview
+ * @var array $deals
+ * @var array $more
+ */
+$title = $article['title'];
+$description = $article['excerpt'] !== '' ? $article['excerpt'] : mb_substr(trim(strip_tags($rendered['html'])), 0, 155);
+$canonical = abs_url('a/' . rawurlencode($article['slug']));
+$noindex = $isPreview;
+$ogImage = $article['cover_image'] ?: null;
+$updated = $article['updated_at'];
+$jsonLd = [
+    '@context' => 'https://schema.org',
+    '@graph'   => [
+        [
+            '@type'         => 'Article',
+            'headline'      => $article['title'],
+            'description'   => $description,
+            'datePublished' => date('c', strtotime($article['published_at'] ?: $article['created_at'])),
+            'dateModified'  => date('c', strtotime($updated)),
+            'mainEntityOfPage' => $canonical,
+            'author'        => ['@type' => 'Organization', 'name' => config('site_name')],
+            'publisher'     => ['@type' => 'Organization', 'name' => config('site_name')],
+        ] + ($article['cover_image'] !== '' ? ['image' => $article['cover_image']] : []),
+        [
+            '@type'           => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'หน้าแรก', 'item' => abs_url('')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => 'บทความ', 'item' => abs_url('blog')],
+                ['@type' => 'ListItem', 'position' => 3, 'name' => $article['title']],
+            ],
+        ],
+    ],
+];
+?>
+<?php if ($isPreview): ?>
+  <p class="preview-bar">ตัวอย่างฉบับร่าง — คนทั่วไปยังมองไม่เห็นหน้านี้ และ Google จะไม่เก็บหน้านี้</p>
+<?php endif; ?>
+
+<nav class="crumbs">
+  <a href="<?= e(url()) ?>">หน้าแรก</a> › <a href="<?= e(url('blog')) ?>">บทความ</a>
+  <?php if ($article['category'] !== ''): ?> › <a href="<?= e(category_link($article['category'])) ?>"><?= e($article['category']) ?></a><?php endif; ?>
+</nav>
+
+<article class="article">
+  <header class="article-head">
+    <h1><?= e($article['title']) ?></h1>
+    <p class="meta">
+      <span>อัปเดต <?= e(thai_date($updated)) ?></span>
+      <span>อ่าน <?= reading_minutes($article['body']) ?> นาที</span>
+    </p>
+    <?php if ($article['cover_image'] !== ''): ?>
+      <img class="article-cover" src="<?= e($article['cover_image']) ?>" alt="<?= e($article['title']) ?>" referrerpolicy="no-referrer">
+    <?php endif; ?>
+    <p class="disclosure-inline">บทความนี้มีลิงก์ Affiliate — ถ้าซื้อผ่านลิงก์ เราอาจได้ค่าคอมมิชชันเล็กน้อย โดยคุณไม่ต้องจ่ายเพิ่ม</p>
+  </header>
+
+  <?php if (count($rendered['toc']) >= 3): ?>
+  <nav class="toc" aria-label="สารบัญ">
+    <strong>สารบัญ</strong>
+    <ol>
+      <?php foreach ($rendered['toc'] as $item): ?>
+        <li><a href="#<?= e($item[0]) ?>"><?= e(strip_tags(md_inline($item[1]))) ?></a></li>
+      <?php endforeach; ?>
+    </ol>
+  </nav>
+  <?php endif; ?>
+
+  <div class="prose article-body">
+    <?= $rendered['html'] ?>
+  </div>
+
+  <?php
+  $shareUrl = $canonical;
+  $shareTitle = $article['title'];
+  require APP_ROOT . '/views/partials/share.php';
+  ?>
+</article>
+
+<?php if ($deals): ?>
+<section class="section">
+  <h2>ดีล<?= e($article['category']) ?>ล่าสุด</h2>
+  <div class="grid">
+    <?php foreach ($deals as $p): ?>
+      <?php require APP_ROOT . '/views/partials/card.php'; ?>
+    <?php endforeach; ?>
+  </div>
+  <p><a href="<?= e(category_link($article['category'])) ?>">ดูดีล<?= e($article['category']) ?>ทั้งหมด →</a></p>
+</section>
+<?php endif; ?>
+
+<?php if ($more): ?>
+<section class="section">
+  <h2>บทความอื่นที่น่าสนใจ</h2>
+  <div class="article-grid">
+    <?php foreach ($more as $a): ?>
+      <?php require APP_ROOT . '/views/partials/article-card.php'; ?>
+    <?php endforeach; ?>
+  </div>
+</section>
+<?php endif; ?>

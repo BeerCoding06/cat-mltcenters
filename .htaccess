@@ -1,0 +1,15 @@
+Options -Indexes
+DirectoryIndex index.php
+
+RewriteEngine On
+
+# Private folders and files
+RewriteRule ^(data|inc|bin|views|docs|deploy)(/|$) - [F,L]
+RewriteRule ^README\.md$ - [F,L]
+RewriteRule ^(config|config\.sample|router)\.php$ - [F,L]
+RewriteRule (^|/)\. - [F,L]
+
+# Everything that is not a real file or folder goes to the front controller
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
