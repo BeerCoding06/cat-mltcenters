@@ -15,7 +15,7 @@ function now(): string
     return date('Y-m-d H:i:s');
 }
 
-/** URL path of the app root, e.g. "/project-money" under MAMP or "" at a domain root. */
+/** URL path of the app root, e.g. "/cat-mltcenters" under MAMP or "" at a domain root. */
 function base_path(): string
 {
     static $base = null;

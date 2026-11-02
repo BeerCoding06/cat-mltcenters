@@ -6,13 +6,13 @@
 ## เริ่มใช้งาน (ครั้งแรก)
 
 ```bash
-cd /Applications/MAMP/htdocs/project-money
+cd /Applications/MAMP/htdocs/cat-mltcenters
 php bin/setup.php          # สร้าง config.php และตั้งรหัสผ่านหลังบ้าน
 php bin/seed-demo.php      # (ไม่บังคับ) ใส่สินค้าตัวอย่างไว้ดูหน้าตาเว็บ
 ```
 
 เปิดเว็บ:
-- ผ่าน MAMP: เปิด MAMP แล้วเข้า http://localhost:8888/project-money/
+- ผ่าน MAMP: เปิด MAMP แล้วเข้า http://localhost:8888/cat-mltcenters/
 - ไม่ใช้ MAMP: `php -S localhost:8765 router.php` แล้วเข้า http://localhost:8765/
 
 หลังบ้าน: `/admin/`
@@ -33,7 +33,7 @@ php bin/seed-demo.php      # (ไม่บังคับ) ใส่สินค
 ตั้ง cron ให้นำเข้าไฟล์ทุกวัน (ตัวอย่าง: ทุกวัน 08:00):
 
 ```
-0 8 * * * php /path/to/project-money/bin/import-csv.php /path/to/products.csv
+0 8 * * * php /path/to/cat-mltcenters/bin/import-csv.php /path/to/products.csv
 ```
 
 ## ก่อนเปิดเว็บจริง
@@ -122,7 +122,7 @@ php bin/seed-demo.php      # (ไม่บังคับ) ใส่สินค
 3. ลองรัน: `php bin/fetch-top-products.php` (หรือกด "ดึงตอนนี้" ในหน้าภาพรวมหลังบ้าน)
 4. ตั้งเวลาทุกเช้า
    - บน Mac: ไฟล์ [deploy/com.deeltasmaew.fetch-top.plist](deploy/com.deeltasmaew.fetch-top.plist) (วิธีติดตั้งอยู่ในไฟล์)
-   - บน hosting: `0 7 * * * php /path/to/project-money/bin/fetch-top-products.php >> /path/to/project-money/data/fetch.log 2>&1`
+   - บน hosting: `0 7 * * * php /path/to/cat-mltcenters/bin/fetch-top-products.php >> /path/to/cat-mltcenters/data/fetch.log 2>&1`
 
 > Lazada ยังไม่รองรับการดึงอัตโนมัติ — ใช้ "นำเข้า CSV" ไปก่อน
 

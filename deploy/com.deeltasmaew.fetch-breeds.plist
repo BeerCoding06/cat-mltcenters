@@ -16,7 +16,7 @@
   <key>ProgramArguments</key>
   <array>
     <string>/Applications/MAMP/bin/php/php8.2.0/bin/php</string>
-    <string>/Applications/MAMP/htdocs/project-money/bin/fetch-breeds.php</string>
+    <string>/Applications/MAMP/htdocs/cat-mltcenters/bin/fetch-breeds.php</string>
   </array>
   <key>StartCalendarInterval</key>
   <dict>
@@ -28,8 +28,8 @@
     <integer>0</integer>
   </dict>
   <key>StandardOutPath</key>
-  <string>/Applications/MAMP/htdocs/project-money/data/fetch-breeds.log</string>
+  <string>/Applications/MAMP/htdocs/cat-mltcenters/data/fetch-breeds.log</string>
   <key>StandardErrorPath</key>
-  <string>/Applications/MAMP/htdocs/project-money/data/fetch-breeds.log</string>
+  <string>/Applications/MAMP/htdocs/cat-mltcenters/data/fetch-breeds.log</string>
 </dict>
 </plist>
