@@ -224,6 +224,7 @@
   }
 
   // Fetch the sprite file once and put it in the page, then point every <use> at the local copy.
+  function inlineSprites() {
   fetch(SPRITES).then(function (r) { return r.ok ? r.text() : Promise.reject(r.status); }).then(function (text) {
     var holder = document.createElement('div');
     holder.setAttribute('aria-hidden', 'true');
@@ -235,6 +236,7 @@
       u.setAttribute('href', href(u.getAttribute('data-frame')));
     });
   }).catch(function () { /* keep using the external file */ });
+  }
 
   function useEl(frame) {
     var use = document.createElementNS(SVG_NS, 'use');
@@ -1107,8 +1109,21 @@
   }
 
   // ── Start ──────────────────────────────────
-  if (store.on) {
-    showAll();
+  // Wait until the page has loaded and settled: cats walking in straight away keep the screen changing,
+  // which slows the first view down for visitors (and the page's measured speed).
+  function wake() {
+    setTimeout(function () {
+      document.documentElement.classList.add('anim-on');
+      inlineSprites();
+      if (store.on) {
+        showAll();
+      }
+    }, 2500);
+  }
+  if (document.readyState === 'complete') {
+    wake();
+  } else {
+    window.addEventListener('load', wake);
   }
   save();
 

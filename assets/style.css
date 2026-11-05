@@ -165,7 +165,7 @@ h1, h2, h3 { letter-spacing: -.005em; }
 
 .platform { align-self: flex-start; font-size: .7rem; font-weight: 700; letter-spacing: .03em; padding: 2px 9px; border-radius: 999px; color: #fff; }
 .platform-lazada { background: var(--lazada); }
-.platform-shopee { background: var(--shopee); }
+.platform-shopee { background: #c9361a; }  /* Shopee orange, darkened for 5:1 contrast with white */
 
 .price-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .price { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--accent); }
@@ -338,12 +338,15 @@ h1, h2, h3 { letter-spacing: -.005em; }
 .cat-scene-cat { position: absolute; left: 4%; bottom: 13%; width: 92%; height: auto; }
 .ill-footer-cat { display: block; width: 100%; height: auto; }
 
-.geo-stars .star { fill: var(--sun); transform-box: fill-box; transform-origin: center; animation: twinkle 2.8s ease-in-out infinite; }
+/* Decorative motion starts a moment after load (html.anim-on), so the first screen settles fast */
+.geo-stars .star { fill: var(--sun); transform-box: fill-box; transform-origin: center; }
+.anim-on .geo-stars .star { animation: twinkle 2.8s ease-in-out infinite; }
 .geo-stars .star-2, .geo-stars .star-5 { fill: var(--pink-deep); animation-delay: .7s; }
 .geo-stars .star-3, .geo-stars .star-6 { animation-delay: 1.4s; }
 .geo-stars .star-4 { animation-delay: 2.1s; }
 @keyframes twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(.82); } }
-.sun-rays { transform-box: fill-box; transform-origin: center; animation: spin 18s linear infinite; }
+.sun-rays { transform-box: fill-box; transform-origin: center; }
+.anim-on .sun-rays { animation: spin 18s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Pet cats (assets/pet-cats.js) ───────── */

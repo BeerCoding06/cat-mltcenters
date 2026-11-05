@@ -39,7 +39,8 @@ $shareImage = !empty($ogImage) ? $ogImage : abs_url('assets/og-default.jpg');
   <link href="<?= e($fontsCss) ?>" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link href="<?= e($fontsCss) ?>" rel="stylesheet"></noscript>
   <link rel="icon" href="<?= e(url('assets/favicon.svg')) ?>" type="image/svg+xml">
-  <link rel="stylesheet" href="<?= e(asset('style.css')) ?>">
+  <?php // Inlined rather than linked: saves a render-blocking round trip (≈7 KB once compressed) ?>
+  <style><?= file_get_contents(APP_ROOT . '/assets/style.css') ?></style>
   <?php if (!empty($jsonLd)): ?>
   <script type="application/ld+json"><?= json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?></script>
   <?php endif; ?>
