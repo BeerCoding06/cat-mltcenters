@@ -3,3 +3,4 @@ config.php
 data/*
 !data/.htaccess
 .DS_Store
+imports/
