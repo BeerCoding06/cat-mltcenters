@@ -1,6 +1,6 @@
 <?php
 
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 
 /** Changes to tables that already exist; new tables just go in schema.sql. Keyed by the version they bring the DB to. */
 const MIGRATIONS = [

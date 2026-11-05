@@ -191,11 +191,10 @@ function price_summary(array $product): array
 
 function log_click(array $product): void
 {
-    $ua = (string) ($_SERVER['HTTP_USER_AGENT'] ?? '');
-    if ($ua === '' || preg_match('/bot|crawl|spider|slurp|preview|facebookexternalhit|curl|wget|python/i', $ua)) {
+    if (!is_human_request()) {
         return;
     }
-    $visitor = hash('sha256', config('click_salt') . '|' . ($_SERVER['REMOTE_ADDR'] ?? '') . '|' . $ua . '|' . date('Y-m-d'));
+    $visitor = visitor_hash();
 
     // Keep only where the click came from (host, or path for our own pages) — never full query strings.
     $referer = '';

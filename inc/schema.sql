@@ -40,6 +40,13 @@ CREATE TABLE IF NOT EXISTS clicks (
 CREATE INDEX IF NOT EXISTS idx_clicks_product ON clicks (product_id, clicked_at);
 CREATE INDEX IF NOT EXISTS idx_clicks_time ON clicks (clicked_at);
 
+CREATE TABLE IF NOT EXISTS visits (
+    day          TEXT    NOT NULL,                 -- Y-m-d
+    visitor_hash TEXT    NOT NULL,                 -- salted daily hash, no raw IP stored
+    views        INTEGER NOT NULL DEFAULT 1,
+    PRIMARY KEY (day, visitor_hash)
+);
+
 CREATE TABLE IF NOT EXISTS articles (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     title        TEXT    NOT NULL,

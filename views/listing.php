@@ -27,7 +27,9 @@ $canonical = abs_url($basePath) . ($page > 1 ? '?page=' . $page : '');
     <p><?= e(config('site_tagline')) ?> รู้ก่อนซื้อว่าราคาวันนี้ถูกจริงไหม</p>
     <div class="hero-stats">
       <span class="hero-stat"><strong><?= number_format($total) ?></strong>ดีลวันนี้</span>
-      <span class="hero-stat"><strong>2</strong>แพลตฟอร์ม</span>
+      <?php $visits = visit_stats(); ?>
+      <span class="hero-stat"><strong><?= number_format($visits['today']) ?></strong>คนเข้าชมวันนี้</span>
+      <span class="hero-stat"><strong><?= number_format($visits['total']) ?></strong>ผู้เข้าชมทั้งหมด</span>
       <span class="hero-stat"><strong>90</strong>วัน ประวัติราคา</span>
     </div>
   </div>

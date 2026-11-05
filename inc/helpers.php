@@ -116,6 +116,9 @@ function is_allowed_affiliate_url(string $value): bool
 function render(string $view, array $vars = [], int $status = 200): void
 {
     http_response_code($status);
+    if ($status === 200) {
+        log_visit();
+    }
     extract($vars, EXTR_SKIP);
     ob_start();
     require APP_ROOT . '/views/' . $view . '.php';
