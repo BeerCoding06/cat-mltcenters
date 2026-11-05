@@ -346,5 +346,8 @@ function article_cover_credit(array $article)
 function article_cover_url(array $article): string
 {
     $cover = (string) $article['cover_image'];
+    if (strpos($cover, '/assets/') === 0) {
+        return asset(substr($cover, strlen('/assets/')));
+    }
     return $cover !== '' && $cover[0] === '/' ? url(ltrim($cover, '/')) : $cover;
 }

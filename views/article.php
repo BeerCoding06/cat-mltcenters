@@ -55,7 +55,7 @@ $jsonLd = [
       <span>อ่าน <?= reading_minutes($article['body']) ?> นาที</span>
     </p>
     <?php if ($article['cover_image'] !== ''): ?>
-      <img class="article-cover photo" src="<?= e($coverUrl) ?>" alt="<?= e($article['title']) ?>" width="1200" height="630" fetchpriority="high" referrerpolicy="no-referrer">
+      <img class="article-cover photo" src="<?= e($coverUrl) ?>" alt="<?= e($article['title']) ?>" width="1200" height="675" fetchpriority="high" referrerpolicy="no-referrer">
       <?php if ($credit = article_cover_credit($article)): ?>
         <p class="article-cover-credit">ภาพ: <a href="<?= e($credit['source']) ?>" rel="nofollow noopener" target="_blank"><?= e($credit['author']) ?> / Unsplash</a></p>
       <?php endif; ?>

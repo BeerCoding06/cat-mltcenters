@@ -43,6 +43,8 @@ function breed_by_slug(string $slug)
 
 /** Where breed photos are kept (in the data volume, so they survive redeploys) and served from (/media/breeds/…). */
 const BREED_PHOTO_DIR = APP_ROOT . '/data/photos/breeds';
+/** Bump when photo_make() frames breed photos differently, so the next fetch redraws photos already on disk. */
+const BREED_PHOTO_CROP = 2;
 
 /** URL of the breed's photo ('' when it has none); $small for cards and lists. */
 function breed_photo_url(array $breed, bool $small = false): string
@@ -51,7 +53,9 @@ function breed_photo_url(array $breed, bool $small = false): string
         return '';
     }
     $file = $small ? preg_replace('/(\.\w+)$/', '-sm$1', $breed['photo']) : $breed['photo'];
-    return url('media/breeds/' . rawurlencode((string) $file));
+    $path = BREED_PHOTO_DIR . '/' . $file;
+    // ?v= changes when a photo is redrawn, so browsers holding the old one for a month fetch it again.
+    return url('media/breeds/' . rawurlencode((string) $file)) . (is_file($path) ? '?v=' . filemtime($path) : '');
 }
 
 /** ['artist' =>, 'license' =>, 'license_url' =>, 'source' =>] for the caption, or null. */
@@ -85,16 +89,18 @@ function breed_fetch_photo(string $imageName, string $slug, $current)
         'license'     => $plain('LicenseShortName') ?: 'ดูที่หน้าไฟล์',
         'license_url' => $plain('LicenseUrl'),
         'source'      => (string) ($info['descriptionurl'] ?? ''),
+        'crop'        => BREED_PHOTO_CROP,
     ];
     $file = $slug . '.webp';
     $old = $current ? json_decode((string) $current['photo_credit'], true) : null;
-    if ($current && $current['photo'] === $file && ($old['file'] ?? '') === $imageName && is_file(BREED_PHOTO_DIR . '/' . $file)) {
+    if ($current && $current['photo'] === $file && ($old['file'] ?? '') === $imageName
+        && ($old['crop'] ?? 1) === BREED_PHOTO_CROP && is_file(BREED_PHOTO_DIR . '/' . $file)) {
         return [$file, $credit];
     }
     $bytes = http_get($info['thumburl']);
-    // Cats are usually in the upper middle of these photos: crop a little above centre.
-    if (!photo_make($bytes, BREED_PHOTO_DIR . '/' . $file, 800, 600, 0.45)
-        || !photo_make($bytes, BREED_PHOTO_DIR . '/' . $slug . '-sm.webp', 400, 300, 0.45)) {
+    // Cats are usually in the upper middle of these photos: crop a little above centre, portraits shown whole.
+    if (!photo_make($bytes, BREED_PHOTO_DIR . '/' . $file, 800, 600, 0.4, true)
+        || !photo_make($bytes, BREED_PHOTO_DIR . '/' . $slug . '-sm.webp', 400, 300, 0.4, true)) {
         return null;
     }
     return [$file, $credit];

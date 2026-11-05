@@ -472,7 +472,7 @@ img.photo { display: block; width: 100%; height: 100%; object-fit: cover; backgr
 .breed-photo img { border-radius: var(--radius); aspect-ratio: 4 / 3; height: auto; box-shadow: var(--shadow); }
 .breed-photo figcaption { font-size: .72rem; color: var(--muted); margin-top: 6px; line-height: 1.4; }
 .breed-photo figcaption a { color: inherit; }
-.article-cover { aspect-ratio: 1200 / 630; object-fit: cover; height: auto; }
+.article-cover { aspect-ratio: 16 / 9; object-fit: cover; height: auto; }
 .article-cover-credit { font-size: .72rem; color: var(--muted); margin: -2px 0 10px; }
 .article-cover-credit a { color: inherit; }
 .breed-head h1 { margin: 0; font-size: clamp(1.7rem, 4vw, 2.4rem); }
