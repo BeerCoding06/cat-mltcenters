@@ -36,7 +36,13 @@
     waterPerHour: 100 / 12,  // about 12 hours
     feed: 40, drink: 50,     // what one bowl gives
     full: 90,                // above this the cat turns its nose up
-    low: 30                  // below this it asks (icon over its head, red dot on the paw button)
+    low: 30,                 // below this it asks (icon over its head, red dot on the paw button)
+    // Stage 2: falling ill. Checked once per hour of real time, the same hour gives the same result on every reload.
+    sickChance: 0.01,        // per hour when fed and watered
+    sickChanceLow: 0.05,     // per hour when food or water is under 20
+    sickChanceEmpty: 0.15,   // per hour when both are empty
+    worseAfter: 24 * 3600000,  // untreated for a day: very sick
+    doseGap: 6 * 3600000       // very sick needs two doses at least 6 hours apart
   };
   var HOUR = 3600000;
   var PRESETS = {
@@ -78,6 +84,7 @@
     // Care (docs/pet-care-game-spec.md): bowl and house drawn in the same style, droplet from Lucide.
     feed: "<path d=\"M3 12h18a9 6.5 0 0 1-18 0z\" /><path d=\"M8 21h8\" /><path d=\"M12 18.5V21\" /><path d=\"M8 8c0-1 1.2-1.4 1.2-2.4S8 4.4 8 3.4\" /><path d=\"M12.5 8c0-1 1.2-1.4 1.2-2.4s-1.2-1.2-1.2-2.2\" />",
     drink: "<path d=\"M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z\" />",
+    med: "<path d=\"m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z\" /><path d=\"m8.5 8.5 7 7\" />",
     sick: "<path d=\"M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z\" />",
     adopt: "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />",
     paw: "<circle cx=\"11\" cy=\"4\" r=\"2\" /><circle cx=\"18\" cy=\"8\" r=\"2\" /><circle cx=\"20\" cy=\"16\" r=\"2\" /><path d=\"M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z\" />"
@@ -218,16 +225,55 @@
       food: clamp100(c.food, 100),
       water: clamp100(c.water, 100),
       lastTick: Math.min(now, Number(c.lastTick) || now),
-      sick: Math.max(0, Math.min(2, c.sick | 0)),  // 0 well, 1 sick, 2 very sick (stage 2 sets it)
-      stats: { meals: stats.meals | 0, drinks: stats.drinks | 0 }
+      sick: Math.max(0, Math.min(2, c.sick | 0)),  // 0 well, 1 sick, 2 very sick
+      sickSince: Number(c.sickSince) || null,
+      doses: c.doses | 0,                           // doses given in this illness
+      lastDoseAt: Number(c.lastDoseAt) || null,
+      stats: { meals: stats.meals | 0, drinks: stats.drinks | 0, meds: stats.meds | 0 }
     };
   }
 
-  /** Move a cat's needs forward to `now` (real time, so hours away count too). */
-  function careAdvance(care, now) {
-    var hours = Math.max(0, now - care.lastTick) / HOUR;
-    care.food = Math.max(0, care.food - hours * CARE.foodPerHour);
-    care.water = Math.max(0, care.water - hours * CARE.waterPerHour);
+  /** Repeatable 0-1 number for one cat in one hour, so a reload doesn't re-roll whether it fell ill. */
+  function hourRoll(id, hourIndex) {
+    var hsh = 2166136261;
+    var key = id + ':' + hourIndex;
+    for (var i = 0; i < key.length; i++) {
+      hsh ^= key.charCodeAt(i);
+      hsh = Math.imul(hsh, 16777619);
+    }
+    return ((hsh >>> 0) % 100000) / 100000;
+  }
+
+  /** Move a cat's needs forward to `now` (real time, so hours away count too), one clock hour at a time:
+   *  at each full hour it may fall ill (more likely when hungry or thirsty), and an untreated illness gets worse. */
+  function careAdvance(cfg, now) {
+    var care = cfg.care;
+    var t = care.lastTick;
+    var guard = 24 * 60; // at most 60 days are simulated after a long absence
+    while (t < now && guard-- > 0) {
+      var next = Math.min(now, (Math.floor(t / HOUR) + 1) * HOUR);
+      var hours = (next - t) / HOUR;
+      care.food = Math.max(0, care.food - hours * CARE.foodPerHour);
+      care.water = Math.max(0, care.water - hours * CARE.waterPerHour);
+      t = next;
+      if (t % HOUR === 0) {
+        if (!care.sick) {
+          var chance = care.food === 0 && care.water === 0 ? CARE.sickChanceEmpty
+            : care.food < 20 || care.water < 20 ? CARE.sickChanceLow : CARE.sickChance;
+          if (hourRoll(cfg.id, t / HOUR) < chance) {
+            care.sick = 1;
+            care.sickSince = t;
+            care.doses = 0;
+          }
+        } else if (care.sick === 1 && t - care.sickSince >= CARE.worseAfter) {
+          care.sick = 2;
+        }
+      }
+    }
+    if (t < now) {  // guard ran out: just bring the numbers up to date
+      care.food = Math.max(0, care.food - (now - t) / HOUR * CARE.foodPerHour);
+      care.water = Math.max(0, care.water - (now - t) / HOUR * CARE.waterPerHour);
+    }
     care.lastTick = now;
   }
   /** What the cat wants most right now, or null. */
@@ -257,7 +303,7 @@
   }
 
   var store = load();
-  store.cats.forEach(function (cfg) { if (cfg.care) { careAdvance(cfg.care, Date.now()); } });
+  store.cats.forEach(function (cfg) { if (cfg.care) { careAdvance(cfg, Date.now()); } });
   var pets = {}; // id -> live pet
 
   function save() {
@@ -880,12 +926,13 @@
     var anyNeed = false;
     store.cats.forEach(function (cfg) {
       if (!cfg.care) { return; }
-      careAdvance(cfg.care, now);
+      careAdvance(cfg, now);
       var need = careNeed(cfg.care);
       anyNeed = anyNeed || !!need;
       var pet = pets[cfg.id];
       if (pet) {
         pet.el.classList.toggle('is-sick', !!cfg.care.sick);
+        pet.el.classList.toggle('is-very-sick', cfg.care.sick === 2);
         pet.need.hidden = !need;
         if (need) {
           pet.need.textContent = '';
@@ -907,7 +954,7 @@
   /** A bowl appears on the floor in front of the cat; it eats or drinks, then the bowl fades. */
   function serve(pet, what) {
     var care = pet.cfg.care;
-    careAdvance(care, Date.now());
+    careAdvance(pet.cfg, Date.now());
     var key = what === 'feed' ? 'food' : 'water';
     if (care[key] > CARE.full) {
       say(pet, what === 'feed' ? 'อิ่มแล้วเหมียว' : 'ยังไม่หิวน้ำเหมียว');
@@ -935,6 +982,50 @@
     save();
   }
 
+  /** Give a pill. Sick: one dose cures. Very sick: two doses, at least CARE.doseGap apart. */
+  function giveMed(pet) {
+    var care = pet.cfg.care;
+    var now = Date.now();
+    careAdvance(pet.cfg, now);
+    if (!care.sick) {
+      say(pet, 'ไม่ได้ป่วยแล้วเหมียว');
+      return;
+    }
+    if (care.sick === 2 && care.doses > 0 && now - care.lastDoseAt < CARE.doseGap) {
+      var wait = Math.ceil((CARE.doseGap - (now - care.lastDoseAt)) / HOUR);
+      say(pet, 'อีก ' + wait + ' ชม. ค่อยให้ยาเม็ดต่อไปนะ');
+      return;
+    }
+    care.doses++;
+    care.lastDoseAt = now;
+    care.stats.meds++;
+    var cured = care.sick === 1 || care.doses >= 2;
+    // The pill drops in front of its mouth, the cat pulls a face (wiggle), then perks up if it is cured.
+    var pill = h('span', { class: 'pet-pill' }, [iconSvg('med')]);
+    var size = Math.max(18, pet.w * 0.13);
+    pill.style.width = size + 'px';
+    pill.style.left = (pet.x + pet.w * (pet.face > 0 ? 0.62 : 0.38) - size / 2) + 'px';
+    pill.style.top = (pet.y + pet.h * 0.35) + 'px';
+    document.body.appendChild(pill);
+    act(pet, 'sit', performance.now(), 1600, { seq: SEQUENCES.look });
+    pet.el.classList.add('is-wiggling');
+    setTimeout(function () { pill.remove(); }, 900);
+    setTimeout(function () {
+      pet.el.classList.remove('is-wiggling');
+      if (cured) {
+        care.sick = 0;
+        care.sickSince = null;
+        care.doses = 0;
+        say(pet, 'หายแล้วเหมียว!');
+      } else {
+        say(pet, 'ดีขึ้นนิดนึง อีก ' + Math.round(CARE.doseGap / HOUR) + ' ชม. ให้ยาอีกเม็ดนะ');
+      }
+      careUpdate();
+      save();
+    }, 1000);
+    save();
+  }
+
   // Side-view bowls in the site's flat style: a blue dish with kibble, or with water and a highlight.
   var BOWL_SVG = {
     feed: '<svg viewBox="0 0 48 30" aria-hidden="true"><ellipse cx="24" cy="27" rx="19" ry="2.6" fill="rgba(0,0,0,.12)"/>'
@@ -957,13 +1048,17 @@
       careBars.hidden = true;
       return;
     }
-    careAdvance(care, Date.now());
+    careAdvance(pet.cfg, Date.now());
     [['feed', 'อาหาร', care.food], ['drink', 'น้ำ', care.water]].forEach(function (b) {
       var fill = h('i');
       fill.style.width = Math.round(b[2]) + '%';
       careBars.appendChild(h('div', { class: 'pet-care-bar pet-care-' + b[0] + (b[2] < CARE.low ? ' is-low' : ''),
         title: b[1] + ' ' + Math.round(b[2]) + '%' }, [iconSvg(b[0]), h('span', { class: 'pet-care-track' }, [fill])]));
     });
+    if (care.sick) {
+      var note = care.sick === 2 ? 'ป่วยหนัก · ให้ยาแล้ว ' + care.doses + '/2' : 'ป่วย · ให้ยา 1 เม็ดหาย';
+      careBars.appendChild(h('div', { class: 'pet-care-bar pet-care-sick' }, [iconSvg('sick'), h('span', { text: note })]));
+    }
     careBars.style.left = (pet.x + pet.w * 0.48) + 'px';
     careBars.style.top = (pet.y + pet.h + 6) + 'px';
     careBars.hidden = false;
@@ -1089,10 +1184,12 @@
     }
     closeRadial();
     act(pet, 'held', performance.now(), 0, { seq: SEQUENCES.look, loop: SEQUENCES.look });
-    var care = pet.cfg.care ? [
+    var care = pet.cfg.care ? (pet.cfg.care.sick ? [
+      { icon: 'med', label: 'ให้ยา ' + pet.cfg.name, short: 'ให้ยา', tone: 'pink', run: function () { giveMed(pet); } }
+    ] : []).concat([
       { icon: 'feed', label: 'ให้อาหาร ' + pet.cfg.name, short: 'ให้อาหาร', tone: 'orange', run: function () { serve(pet, 'feed'); } },
       { icon: 'drink', label: 'ให้น้ำ ' + pet.cfg.name, short: 'ให้น้ำ', tone: 'sky', run: function () { serve(pet, 'drink'); } }
-    ] : [
+    ]) : [
       { icon: 'adopt', label: 'รับ ' + pet.cfg.name + ' มาเลี้ยง', short: 'รับเลี้ยง', tone: 'pink', run: function () { askAdopt(pet); } }
     ];
     var items = care.concat(commandItems([pet.cfg.id])).concat([{ icon: 'edit', label: 'แก้ไข ' + pet.cfg.name, short: 'แก้ไขแมว', tone: 'ink', run: function () {
@@ -1367,17 +1464,28 @@
     // Care testing: petCats.care.fastForward(10) ages every adopted cat 10 hours; set(0, { food: 5 }); status()
     care: {
       fastForward: function (hours) {
-        adopted().forEach(function (c) { c.care.lastTick -= hours * HOUR; });
+        // Move every past time stamp back, as if that many hours had really gone by.
+        adopted().forEach(function (c) {
+          c.care.lastTick -= hours * HOUR;
+          if (c.care.sickSince) { c.care.sickSince -= hours * HOUR; }
+          if (c.care.lastDoseAt) { c.care.lastDoseAt -= hours * HOUR; }
+        });
         careUpdate();
         save();
       },
       set: function (index, values) {
         var c = store.cats[index];
-        if (c && c.care) { Object.assign(c.care, values); careUpdate(); save(); }
+        if (c && c.care) {
+          Object.assign(c.care, values);
+          if (c.care.sick && !c.care.sickSince) { c.care.sickSince = Date.now(); }
+          careUpdate();
+          save();
+        }
       },
       status: function () {
         return adopted().map(function (c) {
-          return { name: c.name, food: Math.round(c.care.food), water: Math.round(c.care.water), need: careNeed(c.care) };
+          return { name: c.name, food: Math.round(c.care.food), water: Math.round(c.care.water), sick: c.care.sick,
+            doses: c.care.doses, need: careNeed(c.care) };
         });
       }
     },

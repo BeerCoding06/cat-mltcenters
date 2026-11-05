@@ -525,6 +525,13 @@ h1, h2, h3 { letter-spacing: -.005em; }
 /* Sick: washed-out colours and slow, low poses (pet-cats.js) */
 .pet-cat.is-sick svg { filter: saturate(.45) brightness(.97); }
 .pet-need-sick { color: #c2445f; }
+.pet-cat.is-very-sick svg { filter: saturate(.25) brightness(.93); }
+.pet-care-sick { color: #a8344e; font-size: .78rem; font-weight: 600; }
+.pet-pill { position: fixed; z-index: 31; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; background: #fff;
+  color: #c2445f; box-shadow: 0 3px 10px -3px rgba(60, 30, 10, .45); pointer-events: none; animation: pill-pop .9s ease-out forwards; }
+.pet-pill .pet-icon { width: 70%; height: 70%; }
+@keyframes pill-pop { 0% { opacity: 0; transform: translateY(-10px) scale(.6); } 25% { opacity: 1; transform: none; }
+  80% { opacity: 1; transform: translateY(4px) scale(.9); } 100% { opacity: 0; transform: translateY(8px) scale(.4); } }
 .pet-care-bars { position: fixed; z-index: 34; transform: translateX(-50%); display: grid; gap: 4px; padding: 6px 10px; background: #fff;
   border-radius: 12px; box-shadow: 0 6px 18px -8px rgba(60, 30, 10, .5); pointer-events: none; }
 .pet-care-bar { display: flex; align-items: center; gap: 6px; }
