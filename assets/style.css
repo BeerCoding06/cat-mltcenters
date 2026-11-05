@@ -447,7 +447,7 @@ h1, h2, h3 { letter-spacing: -.005em; }
 .studio-preview > svg { width: 70%; }
 @media (prefers-reduced-motion: reduce) { .pet-cat { display: none !important; } }
 
-.credits { font-size: .8rem; opacity: .85; }
+.credits { font-size: .8rem; }
 .credits a { text-decoration: underline; }
 
 /* ── Breeds & news ──────────────────────── */
