@@ -3,6 +3,12 @@
 # or the database is lost on every redeploy.
 FROM php:8.2-apache
 
+# GD (JPEG/PNG/WebP) turns downloaded breed photos into small WebP files (inc/photos.php).
+RUN apt-get update && apt-get install -y --no-install-recommends libjpeg62-turbo-dev libpng-dev libwebp-dev \
+ && docker-php-ext-configure gd --with-jpeg --with-webp \
+ && docker-php-ext-install -j"$(nproc)" gd \
+ && rm -rf /var/lib/apt/lists/*
+
 # The official image already has pdo_sqlite, curl, mbstring and simplexml; only .htaccess support is missing.
 RUN a2enmod rewrite headers \
  && sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf \

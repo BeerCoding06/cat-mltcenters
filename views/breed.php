@@ -21,6 +21,10 @@ $jsonLd = [
     'license'   => 'https://creativecommons.org/licenses/by-sa/4.0/',
     'publisher' => ['@type' => 'Organization', 'name' => config('site_name')],
 ];
+if (breed_photo_url($breed) !== '') {
+    $ogImage = abs_url(ltrim(breed_photo_url($breed), '/'));
+    $jsonLd['image'] = $ogImage;
+}
 ?>
 <nav class="crumbs">
   <a href="<?= e(url()) ?>">หน้าแรก</a> › <a href="<?= e(url('breeds')) ?>">สายพันธุ์แมว</a> › <?= e($breed['name_th']) ?>
@@ -28,7 +32,19 @@ $jsonLd = [
 
 <article class="article breed">
   <header class="breed-head">
-    <div class="breed-art"><?= svg_breed_cat(breed_look($breed), 'breed-art-cat') ?></div>
+    <?php $credit = breed_photo_credit($breed); ?>
+    <?php if (breed_photo_url($breed) !== ''): ?>
+      <figure class="breed-photo">
+        <img class="photo" src="<?= e(breed_photo_url($breed)) ?>" alt="แมว<?= e($breed['name_th']) ?>" width="800" height="600">
+        <?php if ($credit): ?>
+          <figcaption>ภาพ: <?= e($credit['artist']) ?> ·
+            <?php if ($credit['license_url'] !== ''): ?><a href="<?= e($credit['license_url']) ?>" rel="nofollow noopener license" target="_blank"><?= e($credit['license']) ?></a><?php else: ?><?= e($credit['license']) ?><?php endif; ?>
+            · <a href="<?= e($credit['source']) ?>" rel="nofollow noopener" target="_blank">Wikimedia Commons</a></figcaption>
+        <?php endif; ?>
+      </figure>
+    <?php else: ?>
+      <div class="breed-art"><?= svg_breed_cat(breed_look($breed), 'breed-art-cat') ?></div>
+    <?php endif; ?>
     <div>
       <h1><?= e($breed['name_th']) ?></h1>
       <?php if ($breed['name_en'] !== ''): ?><p class="breed-en"><?= e($breed['name_en']) ?></p><?php endif; ?>

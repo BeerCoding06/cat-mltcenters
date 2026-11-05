@@ -74,7 +74,9 @@ CREATE TABLE IF NOT EXISTS breeds (
     intro       TEXT    NOT NULL DEFAULT '',
     sections    TEXT    NOT NULL DEFAULT '[]',    -- JSON [[heading, text], ...]
     traits      TEXT,                             -- JSON from TheCatAPI (optional, needs an API key)
-    fetched_at  TEXT    NOT NULL
+    fetched_at  TEXT    NOT NULL,
+    photo       TEXT    NOT NULL DEFAULT '',      -- file in data/photos/breeds (lead photo of the Wikipedia page)
+    photo_credit TEXT                              -- JSON {file, artist, license, license_url, source}
 );
 
 CREATE TABLE IF NOT EXISTS news_items (

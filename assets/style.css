@@ -464,6 +464,17 @@ h1, h2, h3 { letter-spacing: -.005em; }
 .breed-head { display: grid; grid-template-columns: 180px 1fr; gap: 20px; align-items: center; }
 .breed-art { background: var(--pink-soft); border-radius: var(--radius); padding: 12px 16px 0; }
 .breed-art-cat { display: block; width: 100%; height: auto; }
+/* Real photos (breeds: Wikimedia Commons, articles: Unsplash/Pexels), already toned warm in inc/photos.php */
+img.photo { display: block; width: 100%; height: 100%; object-fit: cover; background: var(--cream-deep); }
+.breed-card-art.has-photo { padding: 0; aspect-ratio: 4 / 3; overflow: hidden; }
+.breed-head:has(.breed-photo) { grid-template-columns: minmax(0, 340px) 1fr; }
+.breed-photo { margin: 0; }
+.breed-photo img { border-radius: var(--radius); aspect-ratio: 4 / 3; height: auto; box-shadow: var(--shadow); }
+.breed-photo figcaption { font-size: .72rem; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+.breed-photo figcaption a { color: inherit; }
+.article-cover { aspect-ratio: 1200 / 630; object-fit: cover; height: auto; }
+.article-cover-credit { font-size: .72rem; color: var(--muted); margin: -2px 0 10px; }
+.article-cover-credit a { color: inherit; }
 .breed-head h1 { margin: 0; font-size: clamp(1.7rem, 4vw, 2.4rem); }
 .breed-en { margin: 0 0 8px; color: var(--muted); }
 .breed-facts { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -492,6 +503,7 @@ h1, h2, h3 { letter-spacing: -.005em; }
 @media (max-width: 760px) {
   .home-duo { grid-template-columns: 1fr; gap: 0; }
   .breed-head { grid-template-columns: 110px 1fr; gap: 14px; }
+  .breed-head:has(.breed-photo) { grid-template-columns: 1fr; }
   .main-nav { overflow-x: auto; }
 }
 .article-card-breed { display: grid; place-items: center; padding-top: 10px; }

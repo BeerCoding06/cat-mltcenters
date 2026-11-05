@@ -1,12 +1,16 @@
 <?php
 
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 6;
 
 /** Changes to tables that already exist; new tables just go in schema.sql. Keyed by the version they bring the DB to. */
 const MIGRATIONS = [
     3 => [
         'ALTER TABLE products ADD COLUMN top_rank INTEGER',
         'ALTER TABLE products ADD COLUMN last_synced_at TEXT',
+    ],
+    6 => [
+        "ALTER TABLE breeds ADD COLUMN photo TEXT NOT NULL DEFAULT ''",
+        'ALTER TABLE breeds ADD COLUMN photo_credit TEXT',
     ],
 ];
 

@@ -41,6 +41,65 @@ function breed_by_slug(string $slug)
     return db_one('SELECT * FROM breeds WHERE slug = ?', [$slug]);
 }
 
+/** Where breed photos are kept (in the data volume, so they survive redeploys) and served from (/media/breeds/…). */
+const BREED_PHOTO_DIR = APP_ROOT . '/data/photos/breeds';
+
+/** URL of the breed's photo ('' when it has none); $small for cards and lists. */
+function breed_photo_url(array $breed, bool $small = false): string
+{
+    if (($breed['photo'] ?? '') === '') {
+        return '';
+    }
+    $file = $small ? preg_replace('/(\.\w+)$/', '-sm$1', $breed['photo']) : $breed['photo'];
+    return url('media/breeds/' . rawurlencode((string) $file));
+}
+
+/** ['artist' =>, 'license' =>, 'license_url' =>, 'source' =>] for the caption, or null. */
+function breed_photo_credit(array $breed)
+{
+    $c = json_decode((string) ($breed['photo_credit'] ?? ''), true);
+    return is_array($c) ? $c : null;
+}
+
+/**
+ * Lead photo of a Thai Wikipedia page, from Wikimedia Commons: saves an 800x600 and a 400x300 WebP (warm house tone)
+ * into BREED_PHOTO_DIR and returns [file, credit] — or null when there is no usable photo. Skips the download when
+ * $current already holds the same Commons file.
+ */
+function breed_fetch_photo(string $imageName, string $slug, $current)
+{
+    $info = http_get_json('https://commons.wikimedia.org/w/api.php?' . http_build_query([
+        'action' => 'query', 'titles' => 'File:' . $imageName, 'prop' => 'imageinfo', 'iiprop' => 'url|extmetadata',
+        'iiurlwidth' => 1000, 'format' => 'json', 'formatversion' => 2,
+    ]))['query']['pages'][0]['imageinfo'][0] ?? null;
+    if (!$info || empty($info['thumburl'])) {
+        return null;
+    }
+    $meta = $info['extmetadata'] ?? [];
+    $plain = function ($key) use ($meta) {
+        return trim(html_entity_decode(strip_tags((string) ($meta[$key]['value'] ?? '')), ENT_QUOTES, 'UTF-8'));
+    };
+    $credit = [
+        'file'        => $imageName,
+        'artist'      => mb_substr($plain('Artist') ?: 'ไม่ระบุชื่อ', 0, 120),
+        'license'     => $plain('LicenseShortName') ?: 'ดูที่หน้าไฟล์',
+        'license_url' => $plain('LicenseUrl'),
+        'source'      => (string) ($info['descriptionurl'] ?? ''),
+    ];
+    $file = $slug . '.webp';
+    $old = $current ? json_decode((string) $current['photo_credit'], true) : null;
+    if ($current && $current['photo'] === $file && ($old['file'] ?? '') === $imageName && is_file(BREED_PHOTO_DIR . '/' . $file)) {
+        return [$file, $credit];
+    }
+    $bytes = http_get($info['thumburl']);
+    // Cats are usually in the upper middle of these photos: crop a little above centre.
+    if (!photo_make($bytes, BREED_PHOTO_DIR . '/' . $file, 800, 600, 0.45)
+        || !photo_make($bytes, BREED_PHOTO_DIR . '/' . $slug . '-sm.webp', 400, 300, 0.45)) {
+        return null;
+    }
+    return [$file, $credit];
+}
+
 function breed_look(array $breed): string
 {
     return BREED_LOOKS[$breed['qid']] ?? 'ginger-tabby';
@@ -113,7 +172,7 @@ function fetch_breeds(): array
             try {
                 usleep(1200000); // be gentle with Wikipedia: about one request a second
                 $page = http_get_json('https://th.wikipedia.org/w/api.php?' . http_build_query([
-                    'action' => 'query', 'prop' => 'extracts|info', 'explaintext' => 1, 'exsectionformat' => 'wiki',
+                    'action' => 'query', 'prop' => 'extracts|info|pageimages', 'piprop' => 'name', 'explaintext' => 1, 'exsectionformat' => 'wiki',
                     'inprop' => 'url', 'redirects' => 1, 'format' => 'json', 'formatversion' => 2, 'titles' => $item['th'],
                     'maxlag' => 5,
                 ]))['query']['pages'][0] ?? null;
@@ -143,6 +202,25 @@ function fetch_breeds(): array
         }
         $nameTh = trim((string) preg_replace('/\s*\((?:พันธุ์)?แมว\)\s*$/u', '', $page['title']));
         $existing = db_value('SELECT id FROM breeds WHERE qid = ?', [$qid]);
+        $slugForPhoto = $existing ? (string) db_value('SELECT slug FROM breeds WHERE id = ?', [$existing]) : breed_slug($page['title']);
+        $photo = null;
+        for ($attempt = 1; !empty($page['pageimage']) && $attempt <= 4; $attempt++) {
+            try {
+                usleep(1500000);
+                $photo = breed_fetch_photo((string) $page['pageimage'], $slugForPhoto,
+                    $existing ? db_one('SELECT photo, photo_credit FROM breeds WHERE id = ?', [$existing]) : null);
+                break;
+            } catch (Throwable $ex) {
+                if (strpos($ex->getMessage(), 'HTTP 429') === false || $attempt === 4) {
+                    $result['errors'][] = $item['th'] . ' (รูป): ' . $ex->getMessage();
+                    break;
+                }
+                sleep(5 * $attempt); // rate limited: back off and try again
+            }
+        }
+        if ($photo) {
+            $result['photos'] = ($result['photos'] ?? 0) + 1;
+        }
         $values = [
             $nameTh, $item['en'], implode(', ', $item['origins']), $page['title'], (string) $page['fullurl'],
             $intro, json_encode($sections, JSON_UNESCAPED_UNICODE), $trait ? json_encode($trait, JSON_UNESCAPED_UNICODE) : null, $now,
@@ -150,6 +228,7 @@ function fetch_breeds(): array
         if ($existing) {
             db_run('UPDATE breeds SET name_th = ?, name_en = ?, origin = ?, wiki_title = ?, wiki_url = ?, intro = ?, sections = ?,
                     traits = ?, fetched_at = ? WHERE id = ?', array_merge($values, [$existing]));
+            $breedId = (int) $existing;
         } else {
             $slug = breed_slug($page['title']);
             if (db_value('SELECT 1 FROM breeds WHERE slug = ?', [$slug])) {
@@ -157,6 +236,19 @@ function fetch_breeds(): array
             }
             db_run('INSERT INTO breeds (name_th, name_en, origin, wiki_title, wiki_url, intro, sections, traits, fetched_at, qid, slug)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', array_merge($values, [$qid, $slug]));
+            $breedId = (int) db()->lastInsertId();
+            if ($photo && $slug !== $slugForPhoto) {  // slug got a suffix: keep the photo under the final name
+                foreach (['', '-sm'] as $suffix) {
+                    if (is_file(BREED_PHOTO_DIR . '/' . $slugForPhoto . $suffix . '.webp')) {
+                        rename(BREED_PHOTO_DIR . '/' . $slugForPhoto . $suffix . '.webp', BREED_PHOTO_DIR . '/' . $slug . $suffix . '.webp');
+                    }
+                }
+                $photo[0] = $slug . '.webp';
+            }
+        }
+        if ($photo) {
+            db_run('UPDATE breeds SET photo = ?, photo_credit = ? WHERE id = ?',
+                [$photo[0], json_encode($photo[1], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $breedId]);
         }
         $result['saved']++;
     }

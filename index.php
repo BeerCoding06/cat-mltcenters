@@ -23,6 +23,8 @@ if ($path === '') {
     page_article($m[1], $_GET);
 } elseif (preg_match('#^go/(\d+)$#', $path, $m)) {
     page_go((int) $m[1]);
+} elseif (preg_match('#^media/breeds/([^/]+\.(?:jpg|png|webp))$#u', $path, $m)) {
+    page_media(BREED_PHOTO_DIR, $m[1]);
 } elseif ($path === 'sitemap.xml') {
     page_sitemap();
 } elseif ($path === 'robots.txt') {
@@ -223,6 +225,21 @@ function page_go(int $id): void
     header('X-Robots-Tag: noindex, nofollow');
     header('Cache-Control: no-store');
     header('Location: ' . $product['affiliate_url'], true, 302);
+}
+
+/** Serve a downloaded photo from the data volume (data/ itself is not web-accessible). */
+function page_media(string $dir, string $file): void
+{
+    $path = $dir . '/' . $file;
+    if (strpos($file, '..') !== false || !is_file($path)) {
+        render('404', [], 404);
+        return;
+    }
+    $types = ['jpg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp'];
+    header('Content-Type: ' . $types[strtolower(pathinfo($file, PATHINFO_EXTENSION))]);
+    header('Content-Length: ' . filesize($path));
+    header('Cache-Control: public, max-age=2592000');
+    readfile($path);
 }
 
 function page_sitemap(): void
