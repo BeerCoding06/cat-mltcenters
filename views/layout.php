@@ -33,9 +33,10 @@ $shareImage = !empty($ogImage) ? $ogImage : abs_url('assets/og-default.jpg');
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- Fonts: Mali + IBM Plex Sans Thai Looped, both SIL Open Font License (free for commercial use) -->
-  <!-- A normal (blocking) font stylesheet: loading it later made the text reflow once the fonts arrived,
-       which moved the page around (layout shift) and cost more than the short wait. -->
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600;700&family=Mali:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Font stylesheet loads with the page (so fonts are requested before the first paint) and uses display=optional:
+       a font that is not ready almost at once is skipped for this view instead of swapped in later, so text never
+       reflows and moves the page (layout shift). It is cached, so the next page shows it. -->
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600;700&family=Mali:wght@500;600;700&display=optional" rel="stylesheet">
   <link rel="icon" href="<?= e(url('assets/favicon.svg')) ?>" type="image/svg+xml">
   <?php // Inlined rather than linked: saves a render-blocking round trip (≈7 KB once compressed) ?>
   <style><?= file_get_contents(APP_ROOT . '/assets/style.css') ?></style>
