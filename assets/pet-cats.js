@@ -1109,21 +1109,31 @@
   }
 
   // ── Start ──────────────────────────────────
-  // Wait until the page has loaded and settled: cats walking in straight away keep the screen changing,
-  // which slows the first view down for visitors (and the page's measured speed).
+  // Wait until the page has settled: cats walking in straight away keep the screen changing, which slows the
+  // first view down (and the page's measured speed). They come out as soon as the visitor scrolls, moves or taps,
+  // or after a few seconds on their own.
+  var awake = false;
+  var WAKE_EVENTS = ['pointermove', 'pointerdown', 'scroll', 'keydown', 'touchstart'];
   function wake() {
-    setTimeout(function () {
-      document.documentElement.classList.add('anim-on');
-      inlineSprites();
-      if (store.on) {
-        showAll();
-      }
-    }, 2500);
+    if (awake) {
+      return;
+    }
+    awake = true;
+    WAKE_EVENTS.forEach(function (type) { window.removeEventListener(type, wake); });
+    document.documentElement.classList.add('anim-on');
+    inlineSprites();
+    if (store.on) {
+      showAll();
+    }
+  }
+  WAKE_EVENTS.forEach(function (type) { window.addEventListener(type, wake, { passive: true }); });
+  function wakeLater() {
+    setTimeout(wake, 6000);
   }
   if (document.readyState === 'complete') {
-    wake();
+    wakeLater();
   } else {
-    window.addEventListener('load', wake);
+    window.addEventListener('load', wakeLater);
   }
   save();
 
