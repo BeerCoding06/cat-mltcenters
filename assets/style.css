@@ -526,6 +526,19 @@ h1, h2, h3 { letter-spacing: -.005em; }
 .pet-cat.is-sick svg { filter: saturate(.45) brightness(.97); }
 .pet-need-sick { color: #c2445f; }
 .pet-cat.is-very-sick svg { filter: saturate(.25) brightness(.93); }
+/* Stage 3: going to the cat star — little wings, a slow float up, then gone */
+.pet-wings { position: absolute; left: 22%; top: 2%; width: 56%; pointer-events: none; opacity: 0; animation: wings-in .8s .3s ease-out forwards; }
+.pet-wings svg { display: block; width: 100%; }
+.pet-cat.is-departing { animation: float-away 4s 1s ease-in forwards; }
+.pet-cat.is-departing svg { filter: saturate(.6) brightness(1.08); }
+@keyframes wings-in { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+@keyframes float-away { to { translate: 0 -160px; opacity: 0; } }
+.pet-care-card.is-warning { border-color: #f3c3cf; background: #fff7f9; }
+.pet-care-card.is-warning h3 .pet-icon { color: #c2445f; }
+.pet-care-heart { color: #c2445f; }
+.studio-memorial h3 { display: flex; align-items: center; gap: 6px; }
+.studio-memorial h3 .pet-icon { width: 18px; height: 18px; color: #e8a23b; }
+.studio-cat.is-memory svg { filter: saturate(.7); }
 .pet-care-sick { color: #a8344e; font-size: .78rem; font-weight: 600; }
 .pet-pill { position: fixed; z-index: 31; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; background: #fff;
   color: #c2445f; box-shadow: 0 3px 10px -3px rgba(60, 30, 10, .45); pointer-events: none; animation: pill-pop .9s ease-out forwards; }

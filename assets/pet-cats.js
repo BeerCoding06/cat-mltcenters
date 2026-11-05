@@ -42,7 +42,13 @@
     sickChanceLow: 0.05,     // per hour when food or water is under 20
     sickChanceEmpty: 0.15,   // per hour when both are empty
     worseAfter: 24 * 3600000,  // untreated for a day: very sick
-    doseGap: 6 * 3600000       // very sick needs two doses at least 6 hours apart
+    doseGap: 6 * 3600000,      // very sick needs two doses at least 6 hours apart
+    // Stage 3: health. Per hour; the losses add up.
+    healthEmpty: 2,            // food or water at 0
+    healthSick: 1, healthVerySick: 3,
+    healthGain: 1,             // food and water over 50 and not sick
+    warnAt: 20,                // below this a warning card shows when the page opens
+    memorialMax: 20
   };
   var HOUR = 3600000;
   var PRESETS = {
@@ -84,6 +90,8 @@
     // Care (docs/pet-care-game-spec.md): bowl and house drawn in the same style, droplet from Lucide.
     feed: "<path d=\"M3 12h18a9 6.5 0 0 1-18 0z\" /><path d=\"M8 21h8\" /><path d=\"M12 18.5V21\" /><path d=\"M8 8c0-1 1.2-1.4 1.2-2.4S8 4.4 8 3.4\" /><path d=\"M12.5 8c0-1 1.2-1.4 1.2-2.4s-1.2-1.2-1.2-2.2\" />",
     drink: "<path d=\"M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z\" />",
+    heart: "<path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\" />",
+    star: "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />",
     med: "<path d=\"m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z\" /><path d=\"m8.5 8.5 7 7\" />",
     sick: "<path d=\"M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z\" />",
     adopt: "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />",
@@ -224,6 +232,8 @@
       adoptedAt: Number(c.adoptedAt) || now,
       food: clamp100(c.food, 100),
       water: clamp100(c.water, 100),
+      health: clamp100(c.health, 100),
+      diedAt: Number(c.diedAt) || null,
       lastTick: Math.min(now, Number(c.lastTick) || now),
       sick: Math.max(0, Math.min(2, c.sick | 0)),  // 0 well, 1 sick, 2 very sick
       sickSince: Number(c.sickSince) || null,
@@ -246,16 +256,33 @@
 
   /** Move a cat's needs forward to `now` (real time, so hours away count too), one clock hour at a time:
    *  at each full hour it may fall ill (more likely when hungry or thirsty), and an untreated illness gets worse. */
-  function careAdvance(cfg, now) {
+  function careAdvance(cfg, now, live) {
     var care = cfg.care;
+    if (care.diedAt) {
+      return;
+    }
     var t = care.lastTick;
     var guard = 24 * 60; // at most 60 days are simulated after a long absence
     while (t < now && guard-- > 0) {
       var next = Math.min(now, (Math.floor(t / HOUR) + 1) * HOUR);
       var hours = (next - t) / HOUR;
+      var dh = 0;
+      if (care.food === 0 || care.water === 0) { dh -= CARE.healthEmpty; }
+      if (care.sick === 1) { dh -= CARE.healthSick; }
+      if (care.sick === 2) { dh -= CARE.healthVerySick; }
+      if (!dh && care.food > 50 && care.water > 50) { dh = CARE.healthGain; }
+      care.health = Math.max(0, Math.min(100, care.health + dh * hours));
       care.food = Math.max(0, care.food - hours * CARE.foodPerHour);
       care.water = Math.max(0, care.water - hours * CARE.waterPerHour);
       t = next;
+      if (care.health === 0) {
+        if (live) {
+          care.health = 1;   // never let it go while the visitor is looking at the page
+        } else {
+          care.diedAt = t;
+          break;
+        }
+      }
       if (t % HOUR === 0) {
         if (!care.sick) {
           var chance = care.food === 0 && care.water === 0 ? CARE.sickChanceEmpty
@@ -270,7 +297,7 @@
         }
       }
     }
-    if (t < now) {  // guard ran out: just bring the numbers up to date
+    if (t < now && !care.diedAt) {  // guard ran out: just bring the numbers up to date
       care.food = Math.max(0, care.food - (now - t) / HOUR * CARE.foodPerHour);
       care.water = Math.max(0, care.water - (now - t) / HOUR * CARE.waterPerHour);
     }
@@ -299,7 +326,10 @@
         cats.push(newCatConfig(keys[i], cats.map(function (c) { return c.name; })));
       }
     }
-    return { on: data.on !== false, cats: cats };
+    var memorial = Array.isArray(data.memorial) ? data.memorial.slice(0, CARE.memorialMax).map(function (m) {
+      return { cat: clean(m.cat || {}), diedAt: Number(m.diedAt) || Date.now(), adoptedAt: Number(m.adoptedAt) || Date.now() };
+    }) : [];
+    return { on: data.on !== false, cats: cats, memorial: memorial };
   }
 
   var store = load();
@@ -316,7 +346,7 @@
       return cfg;
     });
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ v: 5, on: store.on, cats: store.cats }));
+      localStorage.setItem(STORE_KEY, JSON.stringify({ v: 5, on: store.on, cats: store.cats, memorial: store.memorial }));
     } catch (e) { /* private mode etc. — cats just won't be remembered */ }
   }
 
@@ -771,6 +801,9 @@
   function step(pet, now, dt) {
     var s = pet.state;
     var moved;
+    if (s === 'gone') {          // going to the cat star: the CSS animation does the rest
+      return;
+    }
     if (s === 'held') {          // its command circle is open: sit still and look around
       playSequence(pet, now);
       return;
@@ -925,8 +958,8 @@
     var now = Date.now();
     var anyNeed = false;
     store.cats.forEach(function (cfg) {
-      if (!cfg.care) { return; }
-      careAdvance(cfg, now);
+      if (!cfg.care || cfg.care.diedAt) { return; }
+      careAdvance(cfg, now, true);
       var need = careNeed(cfg.care);
       anyNeed = anyNeed || !!need;
       var pet = pets[cfg.id];
@@ -954,7 +987,7 @@
   /** A bowl appears on the floor in front of the cat; it eats or drinks, then the bowl fades. */
   function serve(pet, what) {
     var care = pet.cfg.care;
-    careAdvance(pet.cfg, Date.now());
+    careAdvance(pet.cfg, Date.now(), true);
     var key = what === 'feed' ? 'food' : 'water';
     if (care[key] > CARE.full) {
       say(pet, what === 'feed' ? 'อิ่มแล้วเหมียว' : 'ยังไม่หิวน้ำเหมียว');
@@ -986,7 +1019,7 @@
   function giveMed(pet) {
     var care = pet.cfg.care;
     var now = Date.now();
-    careAdvance(pet.cfg, now);
+    careAdvance(pet.cfg, now, true);
     if (!care.sick) {
       say(pet, 'ไม่ได้ป่วยแล้วเหมียว');
       return;
@@ -1048,8 +1081,8 @@
       careBars.hidden = true;
       return;
     }
-    careAdvance(pet.cfg, Date.now());
-    [['feed', 'อาหาร', care.food], ['drink', 'น้ำ', care.water]].forEach(function (b) {
+    careAdvance(pet.cfg, Date.now(), true);
+    [['feed', 'อาหาร', care.food], ['drink', 'น้ำ', care.water], ['heart', 'สุขภาพ', care.health]].forEach(function (b) {
       var fill = h('i');
       fill.style.width = Math.round(b[2]) + '%';
       careBars.appendChild(h('div', { class: 'pet-care-bar pet-care-' + b[0] + (b[2] < CARE.low ? ' is-low' : ''),
@@ -1068,6 +1101,7 @@
   var careCard = h('div', { class: 'pet-care-card', role: 'dialog', 'aria-live': 'polite', hidden: true });
   function closeCareCard() {
     careCard.hidden = true;
+    careCard.classList.remove('is-warning');
     careCard.textContent = '';
   }
   function askAdopt(pet) {
@@ -1094,6 +1128,87 @@
     careCard.hidden = false;
     var first = careCard.querySelector('button');
     if (first) { first.focus({ preventScroll: true }); }
+  }
+
+  // ── Stage 3: farewell, warnings, memories ──
+  function daysBetween(a, b) {
+    return Math.max(1, Math.round((b - a) / 86400000));
+  }
+
+  /** A cat whose health ran out: it sits, grows little wings, floats up and fades. Then it moves to the memories. */
+  function sayGoodbye(cfg) {
+    var pet = pets[cfg.id] || spawn(cfg);
+    pet.state = 'gone';
+    setFrame(pet, 'cs1');
+    pet.need.hidden = true;
+    var wings = h('span', { class: 'pet-wings' });
+    wings.innerHTML = '<svg viewBox="0 0 60 30" aria-hidden="true"><path d="M30 18c-6-10-18-14-26-10 4 2 6 6 4 9 6-2 12 0 22 1z" fill="#fff" stroke="#d9cfe8"/>'
+      + '<path d="M30 18c6-10 18-14 26-10-4 2-6 6-4 9-6-2-12 0-22 1z" fill="#fff" stroke="#d9cfe8"/></svg>';
+    pet.el.appendChild(wings);
+    pet.el.classList.add('is-departing');
+    store.memorial.unshift({ cat: cfg, diedAt: cfg.care.diedAt, adoptedAt: cfg.care.adoptedAt });
+    store.memorial = store.memorial.slice(0, CARE.memorialMax);
+    store.cats = store.cats.filter(function (c) { return c.id !== cfg.id; });
+    save();
+    setTimeout(function () {
+      despawn(cfg.id);
+      showFarewell(cfg);
+    }, 4200);
+  }
+
+  function showFarewell(cfg) {
+    careCard.textContent = '';
+    careCard.appendChild(h('h3', {}, [iconSvg('star'), document.createTextNode(cfg.name + 'ไปอยู่ดาวแมวแล้ว')]));
+    careCard.appendChild(h('p', { text: 'เลี้ยงกันมา ' + daysBetween(cfg.care.adoptedAt, cfg.care.diedAt) + ' วัน ขอบคุณที่ดูแลนะเหมียว '
+      + 'ครั้งหน้าแวะมาให้อาหาร น้ำ และยาบ่อยๆ น้า' }));
+    careCard.appendChild(h('div', { class: 'pet-care-actions' }, [
+      h('button', { type: 'button', class: 'btn btn-deal', text: 'รับเลี้ยงตัวใหม่', onclick: function () {
+        closeCareCard();
+        if (store.cats.length >= MAX) {
+          openDrawer();
+          return;
+        }
+        var fresh = newCatConfig(null, store.cats.map(function (c) { return c.name; }));
+        store.cats.push(fresh);
+        var pet = spawn(fresh);
+        start();
+        save();
+        askAdopt(pet);
+      } }),
+      h('button', { type: 'button', class: 'btn btn-ghost', text: 'ดูความทรงจำ', onclick: function () {
+        closeCareCard();
+        openDrawer();
+        var mem = drawer.querySelector('.studio-memorial');
+        if (mem) { mem.scrollIntoView({ block: 'start' }); }
+      } })
+    ]));
+    careCard.hidden = false;
+  }
+
+  /** On opening the page: say goodbye to cats that died while away, or warn about one that is close. */
+  function careWelcome() {
+    var gone = store.cats.filter(function (c) { return c.care && c.care.diedAt; });
+    if (gone.length) {
+      gone.forEach(function (cfg, i) { setTimeout(function () { sayGoodbye(cfg); }, i * 600); });
+      return;
+    }
+    var weak = store.cats.filter(function (c) { return c.care && c.care.health < CARE.warnAt; })[0];
+    if (!weak) {
+      return;
+    }
+    careCard.textContent = '';
+    careCard.classList.add('is-warning');
+    careCard.appendChild(h('h3', {}, [iconSvg('heart'), document.createTextNode(weak.name + 'อาการไม่ดีเลย')]));
+    careCard.appendChild(h('p', { text: weak.care.sick ? 'ป่วยหนักและอ่อนแรงมาก ต้องการยา อาหาร และน้ำด่วน'
+      : 'หิวและอ่อนแรงมาก ต้องการอาหารและน้ำด่วน' }));
+    careCard.appendChild(h('div', { class: 'pet-care-actions' }, [
+      h('button', { type: 'button', class: 'btn btn-deal', text: 'ไปดูแลเลย', onclick: function () {
+        closeCareCard();
+        if (pets[weak.id]) { openCatRadial(pets[weak.id]); }
+      } }),
+      h('button', { type: 'button', class: 'btn btn-ghost', text: 'ปิด', onclick: closeCareCard })
+    ]));
+    careCard.hidden = false;
   }
 
   // ── UI helpers ─────────────────────────────
@@ -1178,6 +1293,9 @@
   }
 
   function openCatRadial(pet) {
+    if (pet.state === 'gone') {
+      return;
+    }
     if (radialFor === pet) {
       closeRadial();
       return;
@@ -1325,6 +1443,23 @@
       ]),
       h('p', { class: 'studio-note', text: 'แมวเก็บไว้ในเบราว์เซอร์นี้เท่านั้น ไม่ได้ส่งไปที่ไหน — ถ้าล้างข้อมูลเว็บไซต์ แมวจะหายไปด้วย' })
     ]));
+    if (store.memorial.length) {
+      drawerBody.appendChild(h('div', { class: 'studio-section studio-memorial' }, [
+        h('h3', {}, [iconSvg('star'), document.createTextNode(' ความทรงจำ')]),
+        h('div', { class: 'studio-cats' }, store.memorial.map(function (m) {
+          var when = new Date(m.diedAt);
+          return h('div', { class: 'studio-cat is-memory' }, [h('div', { class: 'studio-cat-top' }, [
+            catPreview(m.cat),
+            h('div', { class: 'studio-cat-info' }, [
+              h('div', { class: 'studio-cat-name', text: m.cat.name }),
+              h('div', { class: 'studio-cat-sub', text: 'เลี้ยงมา ' + daysBetween(m.adoptedAt, m.diedAt) + ' วัน · ไปดาวแมวเมื่อ '
+                + when.getDate() + '/' + (when.getMonth() + 1) + '/' + when.getFullYear() })
+            ])
+          ])]);
+        })),
+        h('p', { class: 'studio-note', text: 'แมวจริงป่วยหรือไม่กินอาหาร ควรพาไปหาสัตวแพทย์นะ' })
+      ]));
+    }
   }
 
   function renderEditor() {
@@ -1445,6 +1580,7 @@
       showAll();
     }
     careUpdate();
+    careWelcome();
     setInterval(careUpdate, 60000);
   }
   WAKE_EVENTS.forEach(function (type) { window.addEventListener(type, wake, { passive: true }); });
@@ -1469,7 +1605,9 @@
           c.care.lastTick -= hours * HOUR;
           if (c.care.sickSince) { c.care.sickSince -= hours * HOUR; }
           if (c.care.lastDoseAt) { c.care.lastDoseAt -= hours * HOUR; }
+          careAdvance(c, Date.now());   // as if the page had been closed all that time: it can die
         });
+        careWelcome();
         careUpdate();
         save();
       },
@@ -1484,7 +1622,8 @@
       },
       status: function () {
         return adopted().map(function (c) {
-          return { name: c.name, food: Math.round(c.care.food), water: Math.round(c.care.water), sick: c.care.sick,
+          return { name: c.name, food: Math.round(c.care.food), water: Math.round(c.care.water), health: Math.round(c.care.health),
+            dead: !!c.care.diedAt, sick: c.care.sick,
             doses: c.care.doses, need: careNeed(c.care) };
         });
       }
