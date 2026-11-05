@@ -14,6 +14,9 @@ return [
     'timezone'     => 'Asia/Bangkok',
     'db_path'      => __DIR__ . '/data/app.sqlite',
     'per_page'     => 24,
+    // List product pages in sitemap.xml. Off while they are thin (one price point, no description) so Google spends
+    // its time on the articles; the pages stay reachable and indexable through links. Turn on once price history builds up.
+    'sitemap_products' => false,
 
     // Affiliate links must point to one of these hosts (subdomains included).
     'allowed_affiliate_hosts' => ['lazada.co.th', 'shopee.co.th', 'shope.ee'],

@@ -239,8 +239,10 @@ function page_sitemap(): void
     foreach (db_all("SELECT DISTINCT category FROM products WHERE active = 1 AND category <> ''") as $row) {
         $urls[] = ['loc' => abs_url('c/' . rawurlencode($row['category'])), 'lastmod' => null];
     }
-    foreach (db_all('SELECT slug, updated_at FROM products WHERE active = 1 ORDER BY id') as $row) {
-        $urls[] = ['loc' => abs_url('p/' . rawurlencode($row['slug'])), 'lastmod' => substr($row['updated_at'], 0, 10)];
+    if (config('sitemap_products', true)) {
+        foreach (db_all('SELECT slug, updated_at FROM products WHERE active = 1 ORDER BY id') as $row) {
+            $urls[] = ['loc' => abs_url('p/' . rawurlencode($row['slug'])), 'lastmod' => substr($row['updated_at'], 0, 10)];
+        }
     }
 
     echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
