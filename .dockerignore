@@ -1,0 +1,8 @@
+.git
+.claude
+config.php
+data/*
+!data/.htaccess
+imports
+deploy
+.DS_Store

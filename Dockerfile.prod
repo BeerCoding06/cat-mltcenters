@@ -1,0 +1,19 @@
+# Production image for Dokploy (Build Type: Dockerfile, Docker File: Dockerfile.prod).
+# Settings come from environment variables, see docker/config.php. Mount a volume at /var/www/html/data
+# or the database is lost on every redeploy.
+FROM php:8.2-apache
+
+# The official image already has pdo_sqlite, curl, mbstring and simplexml; only .htaccess support is missing.
+RUN a2enmod rewrite headers \
+ && sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf \
+ && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+WORKDIR /var/www/html
+COPY . .
+COPY docker/config.php config.php
+RUN chmod +x docker/entrypoint.sh && chown -R www-data:www-data data
+
+VOLUME /var/www/html/data
+EXPOSE 80
+ENTRYPOINT ["docker/entrypoint.sh"]
+CMD ["apache2-foreground"]

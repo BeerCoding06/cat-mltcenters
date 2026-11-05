@@ -48,6 +48,15 @@ php bin/seed-demo.php      # (ไม่บังคับ) ใส่สินค
 
 > Hosting ต้องเป็น Apache ที่เปิด `mod_rewrite` และรองรับ `.htaccess` (PHP 7.2 ขึ้นไป, มี pdo_sqlite)
 
+## Deploy ด้วย Dokploy (Docker)
+
+- Build Type: **Dockerfile**, Docker File: `Dockerfile.prod`, Context: `.`
+- Environment: `ADMIN_PASSWORD` (อย่างน้อย 10 ตัว), `SITE_URL` (เช่น `https://cat.mltcenters.com`) และเมื่อได้ API แล้ว `SHOPEE_APP_ID`, `SHOPEE_SECRET` (ไม่บังคับ: `THECATAPI_KEY`)
+- Advanced › Volumes: mount ถาวรที่ `/var/www/html/data` ไม่งั้นฐานข้อมูลหายทุกครั้งที่ deploy
+- Domains: ใส่โดเมน, Container Port `80`, เปิด HTTPS
+- งานอัตโนมัติ (Schedules): `php bin/fetch-news.php` ทุกวัน และ `php bin/fetch-breeds.php` สัปดาห์ละครั้ง
+- `config.php` ในคอนเทนเนอร์มาจาก `docker/config.php` (อ่านค่าจาก Environment) ไม่ต้องสร้างเอง
+
 ## ฟอนต์และรูปภาพ (ลิขสิทธิ์)
 
 | สิ่งที่ใช้ | ที่มา | สัญญาอนุญาต |
