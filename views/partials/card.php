@@ -2,7 +2,7 @@
 <article class="card">
   <a class="card-media" href="<?= e(product_link($p)) ?>">
     <?php if ($p['image_url'] !== ''): ?>
-      <img src="<?= e($p['image_url']) ?>" alt="<?= e($p['name']) ?>" loading="lazy" referrerpolicy="no-referrer">
+      <img src="<?= e(image_thumb($p['image_url'])) ?>" alt="<?= e($p['name']) ?>" width="300" height="300"<?= card_image_attrs() ?> referrerpolicy="no-referrer">
     <?php else: ?>
       <span class="img-placeholder"><?= svg_placeholder_cat() ?>ยังไม่มีรูป</span>
     <?php endif; ?>

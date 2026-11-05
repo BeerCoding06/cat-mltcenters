@@ -33,7 +33,11 @@ $shareImage = !empty($ogImage) ? $ogImage : abs_url('assets/og-default.jpg');
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- Fonts: Mali + IBM Plex Sans Thai Looped, both SIL Open Font License (free for commercial use) -->
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600;700&family=Mali:wght@500;600;700&display=swap" rel="stylesheet">
+  <?php $fontsCss = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600;700&family=Mali:wght@500;600;700&display=swap'; ?>
+  <!-- Loaded without blocking the first paint; the system font shows until it arrives (font-display: swap) -->
+  <link rel="preload" href="<?= e($fontsCss) ?>" as="style">
+  <link href="<?= e($fontsCss) ?>" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="<?= e($fontsCss) ?>" rel="stylesheet"></noscript>
   <link rel="icon" href="<?= e(url('assets/favicon.svg')) ?>" type="image/svg+xml">
   <link rel="stylesheet" href="<?= e(asset('style.css')) ?>">
   <?php if (!empty($jsonLd)): ?>

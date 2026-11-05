@@ -1,6 +1,6 @@
 <?php /** @var array $a */ ?>
 <article class="article-card">
-  <a class="article-card-media" href="<?= e(article_link($a)) ?>">
+  <a class="article-card-media" href="<?= e(article_link($a)) ?>" aria-label="<?= e($a['title']) ?>" tabindex="-1">
     <?php if ($a['cover_image'] !== ''): ?>
       <img src="<?= e($a['cover_image']) ?>" alt="" loading="lazy" referrerpolicy="no-referrer">
     <?php else: ?>

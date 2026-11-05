@@ -27,10 +27,10 @@
   --bg: var(--cream);
   --surface: #ffffff;
   --text: var(--ink);
-  --muted: #8a7266;
+  --muted: #76594d;          /* ≥ 4.5:1 on white and cream (WCAG AA) */
   --line: #f1e1cf;
-  --accent: #c8561c;          /* buttons & prices — dark enough for white text */
-  --accent-hover: #ad4712;
+  --accent: #b04a15;          /* buttons & prices — 5.5:1 with white text */
+  --accent-hover: #95390b;
   --accent-ink: #ffffff;
   --good: #2f7d57;
   --good-bg: #e3f5ea;
@@ -154,7 +154,7 @@ h1, h2, h3 { letter-spacing: -.005em; }
 .card:hover .card-media img { transform: scale(1.04); }
 .img-placeholder { display: grid; place-items: center; align-content: center; gap: 4px; width: 100%; height: 100%; font-size: .82rem; color: #c9a58c; }
 .img-placeholder .ill-placeholder { width: 46%; max-width: 90px; color: #e2c3a8; }
-.badge-discount { position: absolute; top: 10px; left: 10px; background: var(--pink-deep); color: #fff; font-family: var(--font-display); font-weight: 700; font-size: .9rem; padding: 2px 10px; border-radius: 999px; transform: rotate(-4deg); box-shadow: 0 2px 0 rgba(0,0,0,.08); }
+.badge-discount { position: absolute; top: 10px; left: 10px; background: #c2445f; color: #fff; font-family: var(--font-display); font-weight: 700; font-size: .9rem; padding: 2px 10px; border-radius: 999px; transform: rotate(-4deg); box-shadow: 0 2px 0 rgba(0,0,0,.08); }
 .badge-inline { position: static; transform: none; }
 .badge-rank { position: absolute; bottom: 10px; left: 10px; background: var(--ink); color: var(--sun); font-weight: 700; font-size: .78rem; padding: 3px 10px; border-radius: 999px; }
 .card-body { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
@@ -498,3 +498,6 @@ h1, h2, h3 { letter-spacing: -.005em; }
 .pet-cat.is-wiggling svg { animation: wiggle .16s ease-in-out infinite alternate; }
 @keyframes wiggle { from { transform: scaleX(var(--sx)) rotate(-2deg); } to { transform: scaleX(var(--sx)) rotate(2deg) translateY(-1px); } }
 .section-head-list { margin-top: 28px; }
+
+/* Read by screen readers and search engines, hidden on screen */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

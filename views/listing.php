@@ -93,6 +93,8 @@ $canonical = abs_url($basePath) . ($page > 1 ? '?page=' . $page : '');
 <div class="section-head section-head-list">
   <h2>ดีลทั้งหมด</h2>
 </div>
+<?php else: ?>
+<h2 class="sr-only">รายการดีล</h2><?php // keeps headings in order: h1 → h2 → card h3 ?>
 <?php endif; ?>
 
 <form class="filters" method="get" action="<?= e(url($basePath)) ?>">

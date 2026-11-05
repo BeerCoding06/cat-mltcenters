@@ -157,3 +157,23 @@ function platforms_label(string $glue = ' และ '): string
     }
     return $names ? implode($glue, $names) : 'Shopee';
 }
+
+/** Shopee's CDN serves a ~300px thumbnail at <name>_tn — about a sixth of the full image, plenty for a card. */
+function image_thumb(string $url): string
+{
+    if (!preg_match('#^https://[a-z0-9-]+\.img\.susercontent\.com/#', $url) || strpos($url, '_tn') !== false) {
+        return $url;
+    }
+    return (string) preg_replace('#(\.(?:webp|jpe?g|png))?$#', '_tn$1', $url, 1);
+}
+
+/** The first cards are above the fold: load them straight away (the largest one is the LCP image), lazy-load the rest. */
+function card_image_attrs(): string
+{
+    static $n = 0;
+    $n++;
+    if ($n === 1) {
+        return ' fetchpriority="high"';
+    }
+    return $n <= 4 ? '' : ' loading="lazy"';
+}
