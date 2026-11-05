@@ -1,10 +1,39 @@
 <?php
 $filters = ['q' => $search, 'platform' => $platform, 'min' => $minDiscount, 'sort' => $sort === 'discount' ? '' : $sort];
 if ($category !== null) {
-    $title = $category . ' ลดราคา ดีลล่าสุด Lazada / Shopee';
-    $description = 'รวมดีล' . $category . ' ลดราคาจาก Lazada และ Shopee เทียบราคาและดูกราฟราคาย้อนหลังก่อนซื้อ';
+    $title = $category . ' ลดราคา ดีลล่าสุด ' . platforms_label(' / ');
+    $description = 'รวมดีล' . $category . ' ลดราคาจาก ' . platforms_label() . ' เทียบราคาและดูกราฟราคาย้อนหลังก่อนซื้อ';
 } elseif ($search !== '') {
     $title = 'ผลการค้นหา "' . $search . '"';
+} elseif ($page === 1) {
+    // Tells Google the site name and lets it show a search box for the site.
+    $jsonLd = [
+        '@context' => 'https://schema.org',
+        '@graph'   => [
+            [
+                '@type'           => 'WebSite',
+                'name'            => config('site_name'),
+                'url'             => abs_url(),
+                'inLanguage'      => 'th',
+                'potentialAction' => [
+                    '@type'       => 'SearchAction',
+                    'target'      => abs_url() . '?q={search_term_string}',
+                    'query-input' => 'required name=search_term_string',
+                ],
+            ],
+            [
+                '@type' => 'Organization',
+                'name'  => config('site_name'),
+                'url'   => abs_url(),
+                'logo'  => abs_url('assets/og-default.jpg'),
+            ],
+        ],
+    ];
+}
+if ($page > 1) {
+    // Page 2, 3… need their own title and description or Google treats them as copies of page 1.
+    $title = ($title ?? 'ดีลของใช้แมวทั้งหมด') . ' หน้า ' . $page;
+    $description = ($description ?? (string) config('site_tagline')) . ' (หน้า ' . $page . ')';
 }
 $canonical = abs_url($basePath) . ($page > 1 ? '?page=' . $page : '');
 ?>

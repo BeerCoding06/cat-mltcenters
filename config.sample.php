@@ -2,7 +2,9 @@
 // Copy to config.php — `php bin/setup.php` does this and fills in the secrets.
 return [
     'site_name'    => 'คัดมาเหมียว',
-    'site_tagline' => 'รวมดีลอาหารแมว ทรายแมว และของใช้แมว จาก Lazada และ Shopee พร้อมกราฟราคาย้อนหลัง',
+    'site_tagline' => 'รวมดีลอาหารแมว ทรายแมว และของใช้แมว ราคาดี พร้อมกราฟราคาย้อนหลังและบทความวิธีเลือกซื้อ',
+    // Home page <title> after the site name — keep it short (Google shows about 60 characters).
+    'home_title'   => 'ดีลอาหารแมว ทรายแมว ของใช้แมว ราคาดี',
     'home_heading' => 'ดีลของใช้แมววันนี้',
     'search_placeholder' => 'ค้นหา เช่น อาหารแมว, ทรายเต้าหู้, ขนมแมว',
     'logo_mark'    => '🐾',

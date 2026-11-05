@@ -7,7 +7,7 @@
  * @var array $related
  */
 $platformLabel = PLATFORMS[$product['platform']];
-$title = $product['name'] . ' ราคา ' . baht($product['price']);
+$title = short_text($product['name'], 55) . ' ราคา ' . baht($product['price']);
 $description = $product['name'] . ' ราคา ' . baht($product['price'])
     . ((int) $product['discount'] > 0 ? ' ลด ' . (int) $product['discount'] . '%' : '')
     . ' ที่ ' . $platformLabel . ' ดูกราฟราคาย้อนหลังและเทียบราคาก่อนซื้อ';

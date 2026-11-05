@@ -10,7 +10,8 @@ $title = $article['title'];
 $description = $article['excerpt'] !== '' ? $article['excerpt'] : mb_substr(trim(strip_tags($rendered['html'])), 0, 155);
 $canonical = abs_url('a/' . rawurlencode($article['slug']));
 $noindex = $isPreview;
-$ogImage = $article['cover_image'] ?: null;
+$ogImage = $article['cover_image'] ?: article_first_product_image($article['body']);
+$ogType = 'article';
 $updated = $article['updated_at'];
 $jsonLd = [
     '@context' => 'https://schema.org',

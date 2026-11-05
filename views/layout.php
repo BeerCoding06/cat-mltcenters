@@ -1,8 +1,10 @@
 <?php
 /** @var string $content */
 $siteName = (string) config('site_name');
-$pageTitle = isset($title) ? $title . ' | ' . $siteName : $siteName . ' — ' . config('site_tagline');
+$pageTitle = isset($title) ? $title . ' | ' . $siteName : $siteName . ' — ' . config('home_title', config('site_tagline'));
 $pageDescription = $description ?? (string) config('site_tagline');
+// Pages without their own picture share the site card, so links in LINE / X always get a preview image.
+$shareImage = !empty($ogImage) ? $ogImage : abs_url('assets/og-default.jpg');
 ?>
 <!doctype html>
 <html lang="th">
@@ -17,12 +19,17 @@ $pageDescription = $description ?? (string) config('site_tagline');
   <?php if (!empty($canonical)): ?>
   <link rel="canonical" href="<?= e($canonical) ?>">
   <?php endif; ?>
-  <meta property="og:type" content="website">
+  <meta property="og:type" content="<?= e($ogType ?? 'website') ?>">
+  <meta property="og:site_name" content="<?= e($siteName) ?>">
+  <meta property="og:locale" content="th_TH">
   <meta property="og:title" content="<?= e($pageTitle) ?>">
   <meta property="og:description" content="<?= e($pageDescription) ?>">
-  <?php if (!empty($ogImage)): ?>
-  <meta property="og:image" content="<?= e($ogImage) ?>">
+  <?php if (!empty($canonical)): ?>
+  <meta property="og:url" content="<?= e($canonical) ?>">
   <?php endif; ?>
+  <meta property="og:image" content="<?= e($shareImage) ?>">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="<?= e($shareImage) ?>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- Fonts: Mali + IBM Plex Sans Thai Looped, both SIL Open Font License (free for commercial use) -->
@@ -59,7 +66,7 @@ $pageDescription = $description ?? (string) config('site_tagline');
     <div class="wrap">
       <p class="footer-brand"><?= svg_logo() ?><?= e($siteName) ?></p>
       <p class="disclosure">
-        เว็บไซต์นี้เข้าร่วมโปรแกรม Affiliate ของ Lazada และ Shopee เราอาจได้รับค่าคอมมิชชันเมื่อคุณซื้อสินค้าผ่านลิงก์ของเรา
+        เว็บไซต์นี้เข้าร่วมโปรแกรม Affiliate ของ <?= e(platforms_label()) ?> เราอาจได้รับค่าคอมมิชชันเมื่อคุณซื้อสินค้าผ่านลิงก์ของเรา
         โดยคุณไม่ต้องจ่ายเพิ่ม ราคาและโปรโมชันอาจเปลี่ยนแปลง โปรดตรวจสอบราคาจริงบนหน้าร้านก่อนสั่งซื้อ
       </p>
       <p class="footer-links">

@@ -133,3 +133,27 @@ function query_url(string $path, array $params): string
     });
     return url($path) . ($params ? '?' . http_build_query($params) : '');
 }
+
+/** Cuts text to $max characters at a word gap where possible, adding "…". */
+function short_text(string $text, int $max): string
+{
+    $text = trim($text);
+    if (mb_strlen($text) <= $max) {
+        return $text;
+    }
+    $cut = mb_substr($text, 0, $max);
+    $space = mb_strrpos($cut, ' ');
+    return rtrim($space !== false && $space > $max * 0.6 ? mb_substr($cut, 0, $space) : $cut) . '…';
+}
+
+/** "Shopee", or "Lazada และ Shopee" once both have active products — so the copy never promises what isn't there. */
+function platforms_label(string $glue = ' และ '): string
+{
+    static $names = null;
+    if ($names === null) {
+        $names = array_map(function ($row) {
+            return PLATFORMS[$row['platform']] ?? $row['platform'];
+        }, db_all('SELECT DISTINCT platform FROM products WHERE active = 1 ORDER BY platform'));
+    }
+    return $names ? implode($glue, $names) : 'Shopee';
+}

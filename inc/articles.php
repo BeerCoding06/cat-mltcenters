@@ -299,3 +299,13 @@ function articles_approve_scheduled(): int
         [now()]
     );
 }
+
+/** Image of the first [product:ID] in the body, used as the share picture when the article has no cover. */
+function article_first_product_image(string $body)
+{
+    if (!preg_match('/^\[product:(\d+)\]$/m', $body, $m)) {
+        return null;
+    }
+    $image = db_value('SELECT image_url FROM products WHERE id = ?', [(int) $m[1]]);
+    return $image ? (string) $image : null;
+}

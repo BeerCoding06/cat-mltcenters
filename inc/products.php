@@ -129,7 +129,8 @@ function product_save(array $d, $id = null): int
             $params[] = $now;
             db_run($sql, $params);
             $id = (int) $pdo->lastInsertId();
-            db_run('UPDATE products SET slug = ? WHERE id = ?', [slugify($d['name']) . '-' . $id, $id]);
+            // Short slug: Thai letters grow about nine-fold once URL-encoded.
+            db_run('UPDATE products SET slug = ? WHERE id = ?', [slugify(mb_substr($d['name'], 0, 40)) . '-' . $id, $id]);
             db_run('INSERT INTO price_history (product_id, price, recorded_at) VALUES (?, ?, ?)', [$id, $d['price'], $now]);
         } else {
             $oldPrice = db_value('SELECT price FROM products WHERE id = ?', [$id]);
