@@ -30,11 +30,10 @@ $shareImage = !empty($ogImage) ? $ogImage : abs_url('assets/og-default.jpg');
   <meta property="og:image" content="<?= e($shareImage) ?>">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="<?= e($shareImage) ?>">
-  <!-- Fonts: Mali + IBM Plex Sans Thai Looped (SIL Open Font License), served from this site (assets/fonts) so no extra
-       servers hold up the first paint. The two files almost every page needs first are preloaded. font-display: optional
-       means text never swaps font after it is drawn, so nothing moves (no layout shift). -->
-  <link rel="preload" href="<?= e(url('assets/fonts/ibm-plex-sans-thai-looped-400-thai.woff2')) ?>" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="<?= e(url('assets/fonts/mali-700-thai.woff2')) ?>" as="font" type="font/woff2" crossorigin>
+  <!-- Fonts: Mali + IBM Plex Sans Thai Looped (SIL Open Font License), served from this site (assets/fonts, @font-face
+       inlined below). font-display: optional — text is drawn at once and never swaps font later (no layout shift).
+       No <link rel=preload> on purpose: Chrome holds the first paint for preloaded optional fonts, so a font that
+       is slow to arrive (e.g. not yet in Cloudflare's cache) left the page blank for seconds. -->
   <link rel="icon" href="<?= e(url('assets/favicon.svg')) ?>" type="image/svg+xml">
   <?php // Inlined rather than linked: saves a render-blocking round trip (≈7 KB once compressed) ?>
   <style><?= file_get_contents(APP_ROOT . '/assets/fonts/fonts.css') . file_get_contents(APP_ROOT . '/assets/style.css') ?></style>
