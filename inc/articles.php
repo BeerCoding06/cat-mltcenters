@@ -1,6 +1,12 @@
 <?php
 
-const ARTICLE_FIELDS = ['title', 'slug', 'category', 'excerpt', 'cover_image', 'body', 'status'];
+const ARTICLE_FIELDS = ['title', 'slug', 'category', 'excerpt', 'cover_image', 'body', 'status', 'published_at'];
+
+/** Where-clause for articles the public may see: published, and the scheduled time has come. */
+const ARTICLE_LIVE_SQL = "status = 'published' AND published_at <= ?";
+
+/** Folder of article files (front matter + body) that "import" turns into scheduled drafts. */
+const ARTICLE_FILES_DIR = APP_ROOT . '/content/articles';
 
 function article_link(array $article): string
 {
@@ -25,8 +31,8 @@ function article_by_slug(string $slug)
 
 function articles_published(int $limit, ?string $category = null, int $excludeId = 0): array
 {
-    $sql = "SELECT * FROM articles WHERE status = 'published' AND id <> ?";
-    $params = [$excludeId];
+    $sql = 'SELECT * FROM articles WHERE ' . ARTICLE_LIVE_SQL . ' AND id <> ?';
+    $params = [now(), $excludeId];
     if ($category !== null) {
         $sql .= ' AND category = ?';
         $params[] = $category;
@@ -53,6 +59,17 @@ function article_validate(array $in): array
     }
     $d['body'] = str_replace("\r\n", "\n", (string) ($in['body'] ?? ''));
     $d['status'] = ($in['status'] ?? '') === 'published' ? 'published' : 'draft';
+    // Optional publish time (datetime-local "2026-11-06T08:00" or "2026-11-06 08:00"); empty = when published.
+    $d['published_at'] = null;
+    $when = trim((string) ($in['published_at'] ?? ''));
+    if ($when !== '') {
+        $ts = strtotime(str_replace('T', ' ', $when));
+        if ($ts === false) {
+            $errors[] = 'เวลาเผยแพร่ไม่ถูกต้อง';
+        } else {
+            $d['published_at'] = date('Y-m-d H:i:s', $ts);
+        }
+    }
     return [$d, $errors];
 }
 
@@ -81,7 +98,9 @@ function article_save(array $d, $id = null): int
         } else {
             $publishedAt = db_value('SELECT published_at FROM articles WHERE id = ?', [$id]);
         }
-        if ($d['status'] === 'published' && !$publishedAt) {
+        if ($d['published_at'] !== null) {
+            $publishedAt = $d['published_at'];
+        } elseif ($d['status'] === 'published' && !$publishedAt) {
             $publishedAt = $now;
         }
         db_run(
@@ -218,4 +237,64 @@ function article_embed(string $type, string $arg): string
     }
     echo "</div>\n";
     return (string) ob_get_clean();
+}
+
+function article_is_live(array $article): bool
+{
+    return $article['status'] === 'published' && (string) $article['published_at'] <= now();
+}
+
+/**
+ * Creates a draft for every file in content/articles whose slug is not in the database yet, keeping its publish_at.
+ * Existing articles are never touched, so edits made in the admin survive a re-import.
+ * Returns ['created' => n, 'skipped' => n, 'errors' => [file => message]].
+ */
+function articles_import_files(string $dir = ARTICLE_FILES_DIR): array
+{
+    $result = ['created' => 0, 'skipped' => 0, 'errors' => []];
+    foreach (glob($dir . '/*.md') ?: [] as $file) {
+        $name = basename($file);
+        $text = str_replace("\r\n", "\n", (string) file_get_contents($file));
+        if (!preg_match('/^---\n(.*?)\n---\n(.*)$/s', $text, $m)) {
+            $result['errors'][$name] = 'ไม่มีส่วนหัว --- ... ---';
+            continue;
+        }
+        $meta = [];
+        foreach (explode("\n", $m[1]) as $line) {
+            if (preg_match('/^(\w+):\s*(.*)$/u', $line, $kv)) {
+                $meta[$kv[1]] = trim($kv[2]);
+            }
+        }
+        $in = [
+            'title'        => $meta['title'] ?? '',
+            'slug'         => $meta['slug'] ?? '',
+            'category'     => $meta['category'] ?? '',
+            'excerpt'      => $meta['excerpt'] ?? '',
+            'cover_image'  => $meta['cover_image'] ?? '',
+            'published_at' => $meta['publish_at'] ?? '',
+            'body'         => trim($m[2]) . "\n",
+            'status'       => 'draft',
+        ];
+        if ($in['slug'] !== '' && article_by_slug(slugify($in['slug']))) {
+            $result['skipped']++;
+            continue;
+        }
+        list($d, $errors) = article_validate($in);
+        if ($errors) {
+            $result['errors'][$name] = implode(' / ', $errors);
+            continue;
+        }
+        article_save($d);
+        $result['created']++;
+    }
+    return $result;
+}
+
+/** Approves every draft that has a publish time: each goes live on its own when that time comes. */
+function articles_approve_scheduled(): int
+{
+    return db_run(
+        "UPDATE articles SET status = 'published', updated_at = ? WHERE status = 'draft' AND published_at IS NOT NULL",
+        [now()]
+    );
 }

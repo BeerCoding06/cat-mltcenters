@@ -176,7 +176,7 @@ function page_blog(array $q): void
 {
     // Written articles first, then the automatic breed pages (Thai breeds first) — so the page is never empty.
     $entries = [];
-    foreach (db_all("SELECT * FROM articles WHERE status = 'published' ORDER BY published_at DESC") as $a) {
+    foreach (db_all('SELECT * FROM articles WHERE ' . ARTICLE_LIVE_SQL . ' ORDER BY published_at DESC', [now()]) as $a) {
         $entries[] = ['type' => 'article', 'row' => $a];
     }
     foreach (db_all("SELECT * FROM breeds ORDER BY CASE WHEN origin LIKE '%ไทย%' THEN 0 ELSE 1 END, name_th") as $b) {
@@ -196,7 +196,7 @@ function page_article(string $slug, array $q): void
 {
     $article = article_by_slug($slug);
     $isPreview = $article && isset($q['preview']) && hash_equals(article_preview_token($article), (string) $q['preview']);
-    if (!$article || ($article['status'] !== 'published' && !$isPreview)) {
+    if (!$article || (!article_is_live($article) && !$isPreview)) {
         render('404', [], 404);
         return;
     }
@@ -204,7 +204,7 @@ function page_article(string $slug, array $q): void
     render('article', [
         'article'   => $article,
         'rendered'  => article_render($article['body']),
-        'isPreview' => $article['status'] !== 'published',
+        'isPreview' => !article_is_live($article),
         'deals'     => $article['category'] !== ''
             ? db_all('SELECT ' . product_columns() . ' FROM products WHERE category = ? AND active = 1 ORDER BY discount DESC LIMIT 4', [$article['category']])
             : [],
@@ -233,7 +233,7 @@ function page_sitemap(): void
     foreach (db_all('SELECT slug, fetched_at FROM breeds ORDER BY name_th') as $row) {
         $urls[] = ['loc' => abs_url('breed/' . rawurlencode($row['slug'])), 'lastmod' => substr($row['fetched_at'], 0, 10)];
     }
-    foreach (db_all("SELECT slug, updated_at FROM articles WHERE status = 'published' ORDER BY published_at DESC") as $row) {
+    foreach (db_all('SELECT slug, updated_at FROM articles WHERE ' . ARTICLE_LIVE_SQL . ' ORDER BY published_at DESC', [now()]) as $row) {
         $urls[] = ['loc' => abs_url('a/' . rawurlencode($row['slug'])), 'lastmod' => substr($row['updated_at'], 0, 10)];
     }
     foreach (db_all("SELECT DISTINCT category FROM products WHERE active = 1 AND category <> ''") as $row) {

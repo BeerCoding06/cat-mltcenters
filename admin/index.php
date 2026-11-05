@@ -39,6 +39,18 @@ switch ($action) {
     case 'import':
         action_import();
         break;
+    case 'import_articles':
+        require_post();
+        $result = articles_import_files();
+        flash('นำเข้าบทความจากไฟล์: ใหม่ ' . $result['created'] . ' · มีอยู่แล้ว ' . $result['skipped']
+            . ($result['errors'] ? ' · ผิดพลาด ' . count($result['errors']) . ' (' . implode(', ', array_keys($result['errors'])) . ')' : ''));
+        admin_redirect('articles');
+        break;
+    case 'approve_scheduled':
+        require_post();
+        flash('อนุมัติแล้ว ' . articles_approve_scheduled() . ' บทความ — จะขึ้นเว็บเองตามเวลาที่ตั้งไว้');
+        admin_redirect('articles');
+        break;
     case 'template':
         action_template();
         break;
@@ -505,26 +517,42 @@ function action_template(): void
 
 function action_articles(): void
 {
-    $articles = db_all('SELECT id, title, slug, category, status, published_at, updated_at FROM articles ORDER BY updated_at DESC');
+    $articles = db_all('SELECT id, title, slug, category, status, published_at, updated_at FROM articles
+                        ORDER BY CASE WHEN published_at IS NULL THEN 1 ELSE 0 END, published_at DESC, updated_at DESC');
+    $waiting = (int) db_value("SELECT COUNT(*) FROM articles WHERE status = 'draft' AND published_at IS NOT NULL");
+    $hasFiles = (bool) glob(ARTICLE_FILES_DIR . '/*.md');
 
     admin_header('บทความ');
     ?>
     <div class="toolbar">
       <h1>บทความ</h1>
-      <a class="btn btn-deal" href="<?= e(admin_url('article')) ?>" style="margin-left:auto">+ เขียนบทความ</a>
+      <?php if ($hasFiles): ?>
+        <form method="post" action="<?= e(admin_url('import_articles')) ?>" style="margin-left:auto"><?= csrf_field() ?>
+          <button class="btn btn-ghost">นำเข้าบทความจากไฟล์</button>
+        </form>
+      <?php endif; ?>
+      <?php if ($waiting): ?>
+        <form method="post" action="<?= e(admin_url('approve_scheduled')) ?>"
+              onsubmit="return confirm('ตรวจครบแล้วใช่ไหม? ฉบับร่าง <?= $waiting ?> บทความจะขึ้นเว็บเองตามเวลาที่ตั้งไว้')"><?= csrf_field() ?>
+          <button class="btn btn-ghost">อนุมัติฉบับร่างที่ตั้งเวลาไว้ (<?= $waiting ?>)</button>
+        </form>
+      <?php endif; ?>
+      <a class="btn btn-deal" href="<?= e(admin_url('article')) ?>"<?= $hasFiles || $waiting ? '' : ' style="margin-left:auto"' ?>>+ เขียนบทความ</a>
     </div>
     <div class="panel table-wrap">
       <table class="table">
-        <thead><tr><th>ชื่อบทความ</th><th>หมวด</th><th>สถานะ</th><th>แก้ไขล่าสุด</th><th></th></tr></thead>
+        <thead><tr><th>ชื่อบทความ</th><th>หมวด</th><th>สถานะ</th><th>เวลาเผยแพร่</th><th></th></tr></thead>
         <tbody>
         <?php foreach ($articles as $a): ?>
           <tr>
             <td><a href="<?= e(admin_url('article', ['id' => $a['id']])) ?>"><?= e($a['title']) ?></a></td>
             <td><?= e($a['category']) ?></td>
-            <td><?= $a['status'] === 'published' ? '<span class="pill pill-on">เผยแพร่แล้ว</span>' : '<span class="pill">ฉบับร่าง</span>' ?></td>
-            <td><?= e(thai_date($a['updated_at'])) ?></td>
+            <td><?php if (article_is_live($a)): ?><span class="pill pill-on">เผยแพร่แล้ว</span>
+                <?php elseif ($a['status'] === 'published'): ?><span class="pill pill-on">ตั้งเวลาแล้ว</span>
+                <?php else: ?><span class="pill">ฉบับร่าง</span><?php endif; ?></td>
+            <td><?= $a['published_at'] ? e(date('j/n/Y H:i', strtotime($a['published_at']))) : '–' ?></td>
             <td class="actions">
-              <a href="<?= e(article_link($a) . ($a['status'] === 'published' ? '' : '?preview=' . article_preview_token($a))) ?>" target="_blank"><?= $a['status'] === 'published' ? 'ดู ↗' : 'ดูตัวอย่าง ↗' ?></a>
+              <a href="<?= e(article_link($a) . (article_is_live($a) ? '' : '?preview=' . article_preview_token($a))) ?>" target="_blank"><?= article_is_live($a) ? 'ดู ↗' : 'ดูตัวอย่าง ↗' ?></a>
               <form method="post" action="<?= e(admin_url('article_delete')) ?>" onsubmit="return confirm('ลบบทความนี้?')"><?= csrf_field() ?>
                 <input type="hidden" name="id" value="<?= (int) $a['id'] ?>">
                 <button class="linklike danger">ลบ</button>
@@ -577,8 +605,8 @@ function action_article_edit(): void
     <div class="toolbar">
       <h1><?= $id ? 'แก้ไขบทความ' : 'เขียนบทความ' ?></h1>
       <?php if ($article): ?>
-        <a href="<?= e(article_link($article) . ($article['status'] === 'published' ? '' : '?preview=' . article_preview_token($article))) ?>" target="_blank" style="margin-left:auto">
-          <?= $article['status'] === 'published' ? 'ดูหน้าบทความ ↗' : 'ดูตัวอย่างฉบับร่าง ↗' ?></a>
+        <a href="<?= e(article_link($article) . (article_is_live($article) ? '' : '?preview=' . article_preview_token($article))) ?>" target="_blank" style="margin-left:auto">
+          <?= article_is_live($article) ? 'ดูหน้าบทความ ↗' : 'ดูตัวอย่าง ↗' ?></a>
       <?php endif; ?>
     </div>
     <?php if ($errors): ?>
@@ -607,6 +635,9 @@ function action_article_edit(): void
         </label>
         <label>เนื้อหา
           <textarea name="body" rows="28" class="mono"><?= $v('body') ?></textarea>
+        </label>
+        <label>เวลาเผยแพร่ <small>เว้นว่าง = ขึ้นทันทีที่เลือก "เผยแพร่" · ถ้าเป็นเวลาในอนาคต บทความจะขึ้นเองตอนนั้น</small>
+          <input name="published_at" type="datetime-local" value="<?= !empty($values['published_at']) ? e(date('Y-m-d\\TH:i', strtotime((string) $values['published_at']))) : '' ?>">
         </label>
         <div class="form-actions">
           <select name="status">

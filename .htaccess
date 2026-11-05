@@ -4,7 +4,7 @@ DirectoryIndex index.php
 RewriteEngine On
 
 # Private folders and files
-RewriteRule ^(data|inc|bin|views|docs|deploy|docker)(/|$) - [F,L]
+RewriteRule ^(data|inc|bin|views|docs|deploy|docker|content)(/|$) - [F,L]
 RewriteRule ^README\.md$ - [F,L]
 RewriteRule ^(config|config\.sample|router)\.php$ - [F,L]
 RewriteRule ^Dockerfile - [F,L]
