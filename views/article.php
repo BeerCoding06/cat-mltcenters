@@ -10,7 +10,8 @@ $title = $article['title'];
 $description = $article['excerpt'] !== '' ? $article['excerpt'] : mb_substr(trim(strip_tags($rendered['html'])), 0, 155);
 $canonical = abs_url('a/' . rawurlencode($article['slug']));
 $noindex = $isPreview;
-$ogImage = $article['cover_image'] ?: article_first_product_image($article['body']);
+$coverUrl = article_cover_url($article);
+$ogImage = $coverUrl !== '' ? ($coverUrl[0] === '/' ? abs_url(ltrim($coverUrl, '/')) : $coverUrl) : article_first_product_image($article['body']);
 $ogType = 'article';
 $updated = $article['updated_at'];
 $jsonLd = [
@@ -25,7 +26,7 @@ $jsonLd = [
             'mainEntityOfPage' => $canonical,
             'author'        => ['@type' => 'Organization', 'name' => config('site_name')],
             'publisher'     => ['@type' => 'Organization', 'name' => config('site_name')],
-        ] + ($article['cover_image'] !== '' ? ['image' => $article['cover_image']] : []),
+        ] + ($coverUrl !== '' ? ['image' => $ogImage] : []),
         [
             '@type'           => 'BreadcrumbList',
             'itemListElement' => [
@@ -54,7 +55,10 @@ $jsonLd = [
       <span>อ่าน <?= reading_minutes($article['body']) ?> นาที</span>
     </p>
     <?php if ($article['cover_image'] !== ''): ?>
-      <img class="article-cover" src="<?= e($article['cover_image']) ?>" alt="<?= e($article['title']) ?>" referrerpolicy="no-referrer">
+      <img class="article-cover photo" src="<?= e($coverUrl) ?>" alt="<?= e($article['title']) ?>" width="1200" height="630" fetchpriority="high" referrerpolicy="no-referrer">
+      <?php if ($credit = article_cover_credit($article)): ?>
+        <p class="article-cover-credit">ภาพ: <a href="<?= e($credit['source']) ?>" rel="nofollow noopener" target="_blank"><?= e($credit['author']) ?> / Unsplash</a></p>
+      <?php endif; ?>
     <?php endif; ?>
     <p class="disclosure-inline">บทความนี้มีลิงก์ Affiliate — ถ้าซื้อผ่านลิงก์ เราอาจได้ค่าคอมมิชชันเล็กน้อย โดยคุณไม่ต้องจ่ายเพิ่ม</p>
   </header>

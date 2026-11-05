@@ -54,7 +54,8 @@ function article_validate(array $in): array
     $d['category'] = mb_substr(trim((string) ($in['category'] ?? '')), 0, 60);
     $d['excerpt'] = mb_substr(trim((string) ($in['excerpt'] ?? '')), 0, 300);
     $d['cover_image'] = trim((string) ($in['cover_image'] ?? ''));
-    if ($d['cover_image'] !== '' && !is_http_url($d['cover_image'])) {
+    // A full URL, or a file on this site such as /assets/img/articles/x.webp
+    if ($d['cover_image'] !== '' && !is_http_url($d['cover_image']) && !preg_match('#^/[\w./-]+$#', $d['cover_image'])) {
         $errors[] = 'ลิงก์รูปปกไม่ถูกต้อง';
     }
     $d['body'] = str_replace("\r\n", "\n", (string) ($in['body'] ?? ''));
@@ -308,4 +309,42 @@ function article_first_product_image(string $body)
     }
     $image = db_value('SELECT image_url FROM products WHERE id = ?', [(int) $m[1]]);
     return $image ? (string) $image : null;
+}
+
+/** File listing a stock photo for each article: {slug: {image, author, source}}. */
+const ARTICLE_COVERS_FILE = APP_ROOT . '/content/article-covers.json';
+
+/**
+ * Give every article that has no cover yet the photo listed for it in content/article-covers.json
+ * (articles already in the database included). A cover set by hand in the admin is never replaced.
+ */
+function articles_apply_covers(string $file = ARTICLE_COVERS_FILE): int
+{
+    $covers = is_file($file) ? json_decode((string) file_get_contents($file), true) : null;
+    $count = 0;
+    foreach (is_array($covers) ? $covers : [] as $slug => $c) {
+        if (empty($c['image'])) {
+            continue;
+        }
+        $count += db_run(
+            "UPDATE articles SET cover_image = ?, cover_credit = ? WHERE slug = ? AND cover_image = ''",
+            [(string) $c['image'], json_encode(['author' => (string) ($c['author'] ?? ''), 'source' => (string) ($c['source'] ?? '')],
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), (string) $slug]
+        );
+    }
+    return $count;
+}
+
+/** ['author' =>, 'source' =>] of a stock cover photo, or null. */
+function article_cover_credit(array $article)
+{
+    $c = json_decode((string) ($article['cover_credit'] ?? ''), true);
+    return is_array($c) && ($c['author'] ?? '') !== '' ? $c : null;
+}
+
+/** Cover as a URL for this page ('/assets/…' gets the base path) — or ''. */
+function article_cover_url(array $article): string
+{
+    $cover = (string) $article['cover_image'];
+    return $cover !== '' && $cover[0] === '/' ? url(ltrim($cover, '/')) : $cover;
 }

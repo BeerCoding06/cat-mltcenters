@@ -631,7 +631,7 @@ function action_article_edit(): void
           </label>
         </div>
         <label>ลิงก์รูปปก <small>ควรเป็นรูปที่ถ่ายเองหรือมีสิทธิ์ใช้</small>
-          <input name="cover_image" value="<?= $v('cover_image') ?>" type="url">
+          <input name="cover_image" value="<?= $v('cover_image') ?>" placeholder="https://… หรือ /assets/img/articles/….webp">
         </label>
         <label>เนื้อหา
           <textarea name="body" rows="28" class="mono"><?= $v('body') ?></textarea>

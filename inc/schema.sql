@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS articles (
     category     TEXT    NOT NULL DEFAULT '',    -- matches a product category to link them together
     excerpt      TEXT    NOT NULL DEFAULT '',    -- meta description / card summary
     cover_image  TEXT    NOT NULL DEFAULT '',
+    cover_credit TEXT,                             -- JSON {author, source} for a stock photo
     body         TEXT    NOT NULL DEFAULT '',    -- simple Markdown + product shortcodes
     status       TEXT    NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
     published_at TEXT,
