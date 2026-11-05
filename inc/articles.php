@@ -245,11 +245,12 @@ function article_is_live(array $article): bool
 }
 
 /**
- * Creates a draft for every file in content/articles whose slug is not in the database yet, keeping its publish_at.
+ * Creates an article for every file in content/articles whose slug is not in the database yet, keeping its publish_at.
+ * With $publish they are approved straight away and each goes live on its own at publish_at; otherwise they are drafts.
  * Existing articles are never touched, so edits made in the admin survive a re-import.
  * Returns ['created' => n, 'skipped' => n, 'errors' => [file => message]].
  */
-function articles_import_files(string $dir = ARTICLE_FILES_DIR): array
+function articles_import_files(string $dir = ARTICLE_FILES_DIR, bool $publish = false): array
 {
     $result = ['created' => 0, 'skipped' => 0, 'errors' => []];
     foreach (glob($dir . '/*.md') ?: [] as $file) {
@@ -273,7 +274,7 @@ function articles_import_files(string $dir = ARTICLE_FILES_DIR): array
             'cover_image'  => $meta['cover_image'] ?? '',
             'published_at' => $meta['publish_at'] ?? '',
             'body'         => trim($m[2]) . "\n",
-            'status'       => 'draft',
+            'status'       => $publish && ($meta['publish_at'] ?? '') !== '' ? 'published' : 'draft',
         ];
         if ($in['slug'] !== '' && article_by_slug(slugify($in['slug']))) {
             $result['skipped']++;
