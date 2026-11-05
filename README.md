@@ -61,8 +61,8 @@ php bin/seed-demo.php      # (ไม่บังคับ) ใส่สินค
 
 | สิ่งที่ใช้ | ที่มา | สัญญาอนุญาต |
 |---|---|---|
-| ฟอนต์หัวข้อ **Mali** | Google Fonts | SIL Open Font License 1.1 — ใช้เชิงพาณิชย์ได้ฟรี |
-| ฟอนต์เนื้อหา **IBM Plex Sans Thai Looped** | Google Fonts | SIL Open Font License 1.1 — ใช้เชิงพาณิชย์ได้ฟรี |
+| ฟอนต์หัวข้อ **Mali** | Google Fonts (ไฟล์ woff2 เก็บไว้ใน `assets/fonts/` เฉพาะ thai + latin) | SIL Open Font License 1.1 — ใช้เชิงพาณิชย์ได้ฟรี |
+| ฟอนต์เนื้อหา **IBM Plex Sans Thai Looped** | Google Fonts (ไฟล์ woff2 เก็บไว้ใน `assets/fonts/` เฉพาะ thai + latin) | SIL Open Font License 1.1 — ใช้เชิงพาณิชย์ได้ฟรี |
 | ภาพแมวเดิน/วิ่ง/นั่ง/ท่าเงา ([assets/cat-sprites.svg](assets/cat-sprites.svg)) | Freepik — "Flat design animation frames element collection", "Hand drawn cat animation frames element collection" และ "Set silhouette cat vector illustration" — ตัดพื้นหลัง แยกเฟรม และเปลี่ยนสีเป็นตัวแปร | Freepik License — บัญชีฟรี**ต้องให้เครดิต** (ใส่ไว้ท้ายเว็บแล้ว), Premium ไม่ต้อง; ห้ามใช้เป็นโลโก้ |
 | ไอคอนคำสั่งแมว (assets/pet-cats.js) | [Lucide](https://lucide.dev) v0.454.0 (รวม crosshair = ล่าเหยื่อ, sunrise = บิดขี้เกียจ) + ไอคอน "หาว" และ "ไหมพรม" วาดเองในสไตล์เดียวกัน | ISC License — ใช้เชิงพาณิชย์ได้ เก็บข้อความลิขสิทธิ์ไว้ในโค้ด |
 | เนื้อหาหน้าสายพันธุ์ | Wikipedia ภาษาไทย / Wikidata | CC BY-SA 4.0 (ต้องให้เครดิต + ใช้สัญญาเดียวกัน) / CC0 |
