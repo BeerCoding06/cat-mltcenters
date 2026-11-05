@@ -48,7 +48,15 @@
     healthSick: 1, healthVerySick: 3,
     healthGain: 1,             // food and water over 50 and not sick
     warnAt: 20,                // below this a warning card shows when the page opens
-    memorialMax: 20
+    memorialMax: 20,
+    // Stage 4: difficulty multiplies every loss (food, water, health). About how long a neglected cat lasts.
+    levels: {
+      easy: { label: 'สบายๆ', note: 'ประมาณ 5–6 วัน', rate: 0.5 },
+      normal: { label: 'ปกติ', note: 'ประมาณ 2–3 วัน', rate: 1 },
+      hard: { label: 'ท้าทาย', note: 'ประมาณ 1.5–2 วัน', rate: 1.5 }
+    },
+    dealEvery: 5,              // every 5th meal may suggest today's cat-food deals
+    dealGap: 7 * 86400000      // at most once a week
   };
   var HOUR = 3600000;
   var PRESETS = {
@@ -233,6 +241,7 @@
       food: clamp100(c.food, 100),
       water: clamp100(c.water, 100),
       health: clamp100(c.health, 100),
+      level: CARE.levels[c.level] ? c.level : 'normal',
       diedAt: Number(c.diedAt) || null,
       lastTick: Math.min(now, Number(c.lastTick) || now),
       sick: Math.max(0, Math.min(2, c.sick | 0)),  // 0 well, 1 sick, 2 very sick
@@ -261,6 +270,7 @@
     if (care.diedAt) {
       return;
     }
+    var rate = (CARE.levels[care.level] || CARE.levels.normal).rate;
     var t = care.lastTick;
     var guard = 24 * 60; // at most 60 days are simulated after a long absence
     while (t < now && guard-- > 0) {
@@ -271,9 +281,9 @@
       if (care.sick === 1) { dh -= CARE.healthSick; }
       if (care.sick === 2) { dh -= CARE.healthVerySick; }
       if (!dh && care.food > 50 && care.water > 50) { dh = CARE.healthGain; }
-      care.health = Math.max(0, Math.min(100, care.health + dh * hours));
-      care.food = Math.max(0, care.food - hours * CARE.foodPerHour);
-      care.water = Math.max(0, care.water - hours * CARE.waterPerHour);
+      care.health = Math.max(0, Math.min(100, care.health + (dh < 0 ? dh * rate : dh) * hours));
+      care.food = Math.max(0, care.food - hours * CARE.foodPerHour * rate);
+      care.water = Math.max(0, care.water - hours * CARE.waterPerHour * rate);
       t = next;
       if (care.health === 0) {
         if (live) {
@@ -298,8 +308,8 @@
       }
     }
     if (t < now && !care.diedAt) {  // guard ran out: just bring the numbers up to date
-      care.food = Math.max(0, care.food - (now - t) / HOUR * CARE.foodPerHour);
-      care.water = Math.max(0, care.water - (now - t) / HOUR * CARE.waterPerHour);
+      care.food = Math.max(0, care.food - (now - t) / HOUR * CARE.foodPerHour * rate);
+      care.water = Math.max(0, care.water - (now - t) / HOUR * CARE.waterPerHour * rate);
     }
     care.lastTick = now;
   }
@@ -329,7 +339,7 @@
     var memorial = Array.isArray(data.memorial) ? data.memorial.slice(0, CARE.memorialMax).map(function (m) {
       return { cat: clean(m.cat || {}), diedAt: Number(m.diedAt) || Date.now(), adoptedAt: Number(m.adoptedAt) || Date.now() };
     }) : [];
-    return { on: data.on !== false, cats: cats, memorial: memorial };
+    return { on: data.on !== false, cats: cats, memorial: memorial, lastDealCard: Number(data.lastDealCard) || 0 };
   }
 
   var store = load();
@@ -346,7 +356,7 @@
       return cfg;
     });
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ v: 5, on: store.on, cats: store.cats, memorial: store.memorial }));
+      localStorage.setItem(STORE_KEY, JSON.stringify({ v: 5, on: store.on, cats: store.cats, memorial: store.memorial, lastDealCard: store.lastDealCard }));
     } catch (e) { /* private mode etc. — cats just won't be remembered */ }
   }
 
@@ -995,6 +1005,9 @@
     }
     care[key] = Math.min(100, care[key] + (what === 'feed' ? CARE.feed : CARE.drink));
     care.stats[what === 'feed' ? 'meals' : 'drinks']++;
+    if (what === 'feed') {
+      setTimeout(function () { maybeSuggestDeals(care); }, 3600);
+    }
     // The bowl sits just in front of the nose of the crouched pose (sl8: nose tip at about x 262 of 320, ground at y 146).
     var size = Math.max(24, pet.w * 0.17);
     var noseX = pet.face > 0 ? 280 / 320 : 40 / 320;
@@ -1114,9 +1127,12 @@
       careCard.appendChild(h('h3', {}, [iconSvg('adopt'), document.createTextNode('รับ' + pet.cfg.name + 'มาเลี้ยงไหม?')]));
       careCard.appendChild(h('p', { text: 'รับเลี้ยงแล้ว ' + pet.cfg.name + 'จะหิวและกระหายน้ำตามเวลาจริง แม้ตอนปิดเว็บไป '
         + 'แวะมาให้อาหารและน้ำบ่อยๆ นะ (กดที่ตัวแมวเพื่อดูแล)' }));
+      careCard.appendChild(levelPicker('normal'));
       careCard.appendChild(h('div', { class: 'pet-care-actions' }, [
         h('button', { type: 'button', class: 'btn btn-deal', text: 'รับเลี้ยง', onclick: function () {
-          pet.cfg.care = { adoptedAt: Date.now(), food: 80, water: 80, lastTick: Date.now(), stats: { meals: 0, drinks: 0 } };
+          var picked = careCard.querySelector('input[name="care-level"]:checked');
+          pet.cfg.care = cleanCare({ adoptedAt: Date.now(), food: 80, water: 80, lastTick: Date.now(),
+            level: picked ? picked.value : 'normal' });
           closeCareCard();
           say(pet, 'เมี้ยว~ ฝากตัวด้วยนะ');
           careUpdate();
@@ -1128,6 +1144,38 @@
     careCard.hidden = false;
     var first = careCard.querySelector('button');
     if (first) { first.focus({ preventScroll: true }); }
+  }
+
+  /** Radio buttons for the difficulty (how fast needs drop). */
+  function levelPicker(current, onchange) {
+    var group = h('div', { class: 'pet-care-levels', role: 'radiogroup', 'aria-label': 'ระดับการเลี้ยง' });
+    Object.keys(CARE.levels).forEach(function (key) {
+      var lv = CARE.levels[key];
+      var input = h('input', { type: 'radio', name: onchange ? 'care-level-' + current.id : 'care-level', value: key,
+        checked: key === (onchange ? current.level : current), onchange: onchange ? function () { onchange(key); } : null });
+      group.appendChild(h('label', { class: 'pet-care-level' }, [input, h('span', {}, [
+        h('b', { text: lv.label }), h('small', { text: 'ทิ้งไว้ได้' + lv.note })])]));
+    });
+    return group;
+  }
+
+  /** Every few meals (at most weekly): a gentle nudge towards real cat-food deals. Never for medicine. */
+  var SITE_BASE = SPRITES.split('assets/')[0];
+  function maybeSuggestDeals(care) {
+    var now = Date.now();
+    if (care.stats.meals % CARE.dealEvery !== 0 || now - (store.lastDealCard || 0) < CARE.dealGap || !careCard.hidden) {
+      return;
+    }
+    store.lastDealCard = now;
+    careCard.textContent = '';
+    careCard.appendChild(h('h3', {}, [iconSvg('feed'), document.createTextNode('น้องแมวที่บ้านกินอะไรอยู่?')]));
+    careCard.appendChild(h('p', { text: 'ให้อาหารน้องบนจอครบ ' + care.stats.meals + ' มื้อแล้ว ลองดูดีลอาหารแมวจริงวันนี้ไหม' }));
+    careCard.appendChild(h('div', { class: 'pet-care-actions' }, [
+      h('a', { class: 'btn btn-deal', href: SITE_BASE + 'c/' + encodeURIComponent('อาหารแมวเม็ด'), text: 'ดูดีลอาหารแมว →' }),
+      h('button', { type: 'button', class: 'btn btn-ghost', text: 'ไว้ก่อน', onclick: closeCareCard })
+    ]));
+    careCard.hidden = false;
+    save();
   }
 
   // ── Stage 3: farewell, warnings, memories ──
@@ -1415,7 +1463,15 @@
           catPreview(cfg),
           h('div', { class: 'studio-cat-info' }, [
             h('div', { class: 'studio-cat-name', text: cfg.name }),
-            h('div', { class: 'studio-cat-sub', text: (PRESETS[cfg.preset] ? PRESETS[cfg.preset].label : 'สีของฉันเอง') + ' · ' + PATTERNS[cfg.pattern] + ' · ' + MOODS[cfg.mood] })
+            h('div', { class: 'studio-cat-sub', text: (PRESETS[cfg.preset] ? PRESETS[cfg.preset].label : 'สีของฉันเอง') + ' · ' + PATTERNS[cfg.pattern] + ' · ' + MOODS[cfg.mood] }),
+            cfg.care ? h('div', { class: 'studio-cat-care' }, [
+              h('span', { class: 'studio-cat-sub', text: 'รับเลี้ยงแล้ว · ระดับ' }),
+              levelPicker({ id: cfg.id, level: cfg.care.level }, function (key) {
+                careAdvance(cfg, Date.now(), true);  // the old pace up to now, the new one from here on
+                cfg.care.level = key;
+                save();
+              })
+            ]) : null
           ]),
           h('div', { class: 'studio-cat-actions' }, [
             h('button', { type: 'button', class: 'chip-btn', text: 'แก้ไข', onclick: function () { editing = Object.assign({}, cfg); renderDrawer(); } }),

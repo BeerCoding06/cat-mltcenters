@@ -539,6 +539,23 @@ h1, h2, h3 { letter-spacing: -.005em; }
 .studio-memorial h3 { display: flex; align-items: center; gap: 6px; }
 .studio-memorial h3 .pet-icon { width: 18px; height: 18px; color: #e8a23b; }
 .studio-cat.is-memory svg { filter: saturate(.7); }
+/* Stage 4: difficulty pills (adopt card and studio) and the deal nudge */
+.pet-care-levels { display: flex; gap: 6px; margin: 0 0 12px; }
+.pet-care-level { flex: 1; position: relative; cursor: pointer; }
+.pet-care-level input { position: absolute; opacity: 0; pointer-events: none; }
+.pet-care-level span { display: grid; gap: 1px; text-align: center; padding: 6px 4px; border: 2px solid var(--line); border-radius: 12px;
+  background: var(--surface); transition: border-color .15s, background .15s; }
+.pet-care-level b { font-size: .85rem; }
+.pet-care-level small { font-size: .7rem; color: var(--muted); line-height: 1.3; }
+.pet-care-level:hover span { border-color: var(--ginger); }
+.pet-care-level input:checked + span { border-color: var(--accent); background: #fff1e6; }
+.pet-care-level input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pet-care-actions a.btn { text-decoration: none; }
+.studio-cat-care { display: grid; gap: 4px; margin-top: 6px; }
+.studio-cat-care .pet-care-levels { margin: 0; gap: 4px; }
+.studio-cat-care .pet-care-level span { padding: 3px 2px; border-radius: 999px; }
+.studio-cat-care .pet-care-level b { font-size: .78rem; }
+.studio-cat-care .pet-care-level small { display: none; }  /* the drawer is narrow; the notes are on the adopt card */
 .pet-care-sick { color: #a8344e; font-size: .78rem; font-weight: 600; }
 .pet-pill { position: fixed; z-index: 31; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; background: #fff;
   color: #c2445f; box-shadow: 0 3px 10px -3px rgba(60, 30, 10, .45); pointer-events: none; animation: pill-pop .9s ease-out forwards; }
