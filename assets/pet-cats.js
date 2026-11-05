@@ -26,6 +26,19 @@
 
   var PATTERNS = { solid: 'สีพื้น', tabby: 'ลายสลิด', socks: 'ถุงเท้าขาว', points: 'แต้มสี', calico: 'สามสี' };
   var MOODS = { normal: 'ปกติ', sleepy: 'ขี้เซา', playful: 'ซนสุดๆ' };
+
+  // ── Care game (docs/pet-care-game-spec.md, stage 1: adopt, food, water) ──
+  // Only adopted cats get hungry and thirsty; the others stay carefree decorations. Values run 0-100 and drop in
+  // real time, also while the site is closed (caught up from lastTick on the next visit).
+  var CARE = {
+    maxAdopted: 3,
+    foodPerHour: 100 / 16,   // full to empty in about 16 hours
+    waterPerHour: 100 / 12,  // about 12 hours
+    feed: 40, drink: 50,     // what one bowl gives
+    full: 90,                // above this the cat turns its nose up
+    low: 30                  // below this it asks (icon over its head, red dot on the paw button)
+  };
+  var HOUR = 3600000;
   var PRESETS = {
     'ginger-tabby': { label: 'ส้มลายสลิด', base: '#f6a65a', accent: '#c8692a', pattern: 'tabby', eye: '#8cc63f', collar: '#e2768c' },
     'silver-tabby': { label: 'ซิลเวอร์แท็บบี้', base: '#b7c0c9', accent: '#5d6874', pattern: 'tabby', eye: '#7cc36b', collar: '#6aa6dc' },
@@ -62,6 +75,10 @@
     edit: "<path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\" /><path d=\"m15 5 4 4\" />",
     hide: "<path d=\"M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49\" /><path d=\"M14.084 14.158a3 3 0 0 1-4.242-4.242\" /><path d=\"M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143\" /><path d=\"m2 2 20 20\" />",
     show: "<path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\" /><circle cx=\"12\" cy=\"12\" r=\"3\" />",
+    // Care (docs/pet-care-game-spec.md): bowl and house drawn in the same style, droplet from Lucide.
+    feed: "<path d=\"M3 12h18a9 6.5 0 0 1-18 0z\" /><path d=\"M8 21h8\" /><path d=\"M12 18.5V21\" /><path d=\"M8 8c0-1 1.2-1.4 1.2-2.4S8 4.4 8 3.4\" /><path d=\"M12.5 8c0-1 1.2-1.4 1.2-2.4s-1.2-1.2-1.2-2.2\" />",
+    drink: "<path d=\"M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z\" />",
+    adopt: "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />",
     paw: "<circle cx=\"11\" cy=\"4\" r=\"2\" /><circle cx=\"18\" cy=\"8\" r=\"2\" /><circle cx=\"20\" cy=\"16\" r=\"2\" /><path d=\"M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z\" />"
   };
 
@@ -180,8 +197,44 @@
       size: Math.max(80, Math.min(180, parseInt(c.size, 10) || 120)),
       mood: MOODS[c.mood] ? c.mood : 'normal',
       x: typeof c.x === 'number' && isFinite(c.x) ? c.x : null,
-      y: typeof c.y === 'number' && isFinite(c.y) ? c.y : null
+      y: typeof c.y === 'number' && isFinite(c.y) ? c.y : null,
+      care: cleanCare(c.care)
     };
+  }
+
+  function clamp100(v, fallback) {
+    v = Number(v);
+    return isFinite(v) ? Math.max(0, Math.min(100, v)) : fallback;
+  }
+  function cleanCare(c) {
+    if (!c || typeof c !== 'object' || !c.adoptedAt) {
+      return null;
+    }
+    var now = Date.now();
+    var stats = c.stats || {};
+    return {
+      adoptedAt: Number(c.adoptedAt) || now,
+      food: clamp100(c.food, 100),
+      water: clamp100(c.water, 100),
+      lastTick: Math.min(now, Number(c.lastTick) || now),
+      stats: { meals: stats.meals | 0, drinks: stats.drinks | 0 }
+    };
+  }
+
+  /** Move a cat's needs forward to `now` (real time, so hours away count too). */
+  function careAdvance(care, now) {
+    var hours = Math.max(0, now - care.lastTick) / HOUR;
+    care.food = Math.max(0, care.food - hours * CARE.foodPerHour);
+    care.water = Math.max(0, care.water - hours * CARE.waterPerHour);
+    care.lastTick = now;
+  }
+  /** What the cat wants most right now, or null. */
+  function careNeed(care) {
+    if (!care) { return null; }
+    if (care.water < CARE.low && care.water <= care.food) { return 'drink'; }
+    if (care.food < CARE.low) { return 'feed'; }
+    if (care.water < CARE.low) { return 'drink'; }
+    return null;
   }
 
   function load() {
@@ -201,6 +254,7 @@
   }
 
   var store = load();
+  store.cats.forEach(function (cfg) { if (cfg.care) { careAdvance(cfg.care, Date.now()); } });
   var pets = {}; // id -> live pet
 
   function save() {
@@ -213,7 +267,7 @@
       return cfg;
     });
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ v: 4, on: store.on, cats: store.cats }));
+      localStorage.setItem(STORE_KEY, JSON.stringify({ v: 5, on: store.on, cats: store.cats }));
     } catch (e) { /* private mode etc. — cats just won't be remembered */ }
   }
 
@@ -333,6 +387,10 @@
     setFrame(pet, 'cs1');
     setFace(pet, Math.random() < 0.5 ? 1 : -1);
     pets[cfg.id] = pet;
+    pet.need = document.createElement('span');
+    pet.need.className = 'pet-need';
+    pet.need.hidden = true;
+    el.appendChild(pet.need);
     el.addEventListener('click', function (e) {
       e.stopPropagation();
       openCatRadial(pet);
@@ -420,7 +478,8 @@
     wake: [['cs7', 400], ['cs6', 500], ['sl2', 1500], ['sl4', 500], ['cs1', 300]], // stretch on waking up
     stretch: [['cs6', 400], ['sl2', 1700], ['sl4', 600], ['cs1', 300]],
     curious: [['sl4', 700], ['sl3', 1800], ['sl4', 500], ['sl3', 1200], ['cs1', 300]],    // stands up, looks up at something
-    look: [['cs5', 1400], ['cs1', 200], ['cs4', 900]]
+    look: [['cs5', 1400], ['cs1', 200], ['cs4', 900]],
+    eat: [['cs4', 500], ['cs1', 350], ['cs4', 500], ['cs1', 350], ['cs4', 500], ['cs1', 300]]  // heads down to the bowl
   };
   var WEIGHTS = {
     normal: { walk: 20, trot: 7, sit: 14, yawn: 5, sleep: 9, zoom: 7, play: 8, dash: 20, hunt: 9, stretch: 3, curious: 6 },
@@ -757,6 +816,9 @@
       }
     });
     start();
+    if (typeof careUpdate === 'function' && fabBtn) {
+      careUpdate();
+    }
   }
   function hideAll() {
     save();
@@ -788,6 +850,116 @@
     });
     start();
     save();
+  }
+
+  // ── Care: adopt, feed, give water ──────────
+  function adopted() {
+    return store.cats.filter(function (c) { return c.care; });
+  }
+
+  function careUpdate() {
+    var now = Date.now();
+    var anyNeed = false;
+    store.cats.forEach(function (cfg) {
+      if (!cfg.care) { return; }
+      careAdvance(cfg.care, now);
+      var need = careNeed(cfg.care);
+      anyNeed = anyNeed || !!need;
+      var pet = pets[cfg.id];
+      if (pet) {
+        pet.need.hidden = !need;
+        if (need) {
+          pet.need.textContent = '';
+          pet.need.appendChild(iconSvg(need));
+          pet.need.className = 'pet-need pet-need-' + need;
+        }
+      }
+    });
+    fabBtn.classList.toggle('has-need', anyNeed);
+  }
+
+  /** A short speech bubble over a cat ("อิ่มแล้วเหมียว"). */
+  function say(pet, text) {
+    var bubble = h('span', { class: 'pet-say', text: text });
+    pet.el.appendChild(bubble);
+    setTimeout(function () { bubble.remove(); }, 2200);
+  }
+
+  /** A bowl appears on the floor in front of the cat; it eats or drinks, then the bowl fades. */
+  function serve(pet, what) {
+    var care = pet.cfg.care;
+    careAdvance(care, Date.now());
+    var key = what === 'feed' ? 'food' : 'water';
+    if (care[key] > CARE.full) {
+      say(pet, what === 'feed' ? 'อิ่มแล้วเหมียว' : 'ยังไม่หิวน้ำเหมียว');
+      return;
+    }
+    care[key] = Math.min(100, care[key] + (what === 'feed' ? CARE.feed : CARE.drink));
+    care.stats[what === 'feed' ? 'meals' : 'drinks']++;
+    var bowl = h('span', { class: 'pet-bowl pet-bowl-' + what }, [iconSvg(what)]);
+    var size = Math.max(30, pet.w * 0.28);
+    bowl.style.width = size + 'px';
+    bowl.style.left = (pet.face > 0 ? pet.x + pet.w * 0.78 : pet.x + pet.w * 0.08 - size * 0.5) + 'px';
+    bowl.style.top = (pet.y + pet.h - size * 0.9) + 'px';
+    document.body.appendChild(bowl);
+    act(pet, 'sit', performance.now(), 3200, { seq: SEQUENCES.eat });
+    setTimeout(function () { bowl.classList.add('is-done'); }, 2900);
+    setTimeout(function () { bowl.remove(); }, 3500);
+    careUpdate();
+    save();
+  }
+
+  /** Small bars under the cat (food / water) while its command circle is open. */
+  var careBars = h('div', { class: 'pet-care-bars', hidden: true });
+  function showCareBars(pet) {
+    var care = pet.cfg.care;
+    careBars.textContent = '';
+    if (!care) {
+      careBars.hidden = true;
+      return;
+    }
+    careAdvance(care, Date.now());
+    [['feed', 'อาหาร', care.food], ['drink', 'น้ำ', care.water]].forEach(function (b) {
+      var fill = h('i');
+      fill.style.width = Math.round(b[2]) + '%';
+      careBars.appendChild(h('div', { class: 'pet-care-bar pet-care-' + b[0] + (b[2] < CARE.low ? ' is-low' : ''),
+        title: b[1] + ' ' + Math.round(b[2]) + '%' }, [iconSvg(b[0]), h('span', { class: 'pet-care-track' }, [fill])]));
+    });
+    careBars.style.left = (pet.x + pet.w * 0.48) + 'px';
+    careBars.style.top = (pet.y + pet.h + 6) + 'px';
+    careBars.hidden = false;
+  }
+
+  /** Card in the corner for adoption (and later stages: warnings, farewells). Not modal. */
+  var careCard = h('div', { class: 'pet-care-card', role: 'dialog', 'aria-live': 'polite', hidden: true });
+  function closeCareCard() {
+    careCard.hidden = true;
+    careCard.textContent = '';
+  }
+  function askAdopt(pet) {
+    careCard.textContent = '';
+    if (adopted().length >= CARE.maxAdopted) {
+      careCard.appendChild(h('p', { text: 'รับเลี้ยงได้ครั้งละ ' + CARE.maxAdopted + ' ตัวนะ ดูแลตัวที่มีอยู่ให้ดีก่อนเหมียว' }));
+      careCard.appendChild(h('div', { class: 'pet-care-actions' }, [
+        h('button', { type: 'button', class: 'btn btn-ghost', text: 'ตกลง', onclick: closeCareCard })]));
+    } else {
+      careCard.appendChild(h('h3', {}, [iconSvg('adopt'), document.createTextNode('รับ' + pet.cfg.name + 'มาเลี้ยงไหม?')]));
+      careCard.appendChild(h('p', { text: 'รับเลี้ยงแล้ว ' + pet.cfg.name + 'จะหิวและกระหายน้ำตามเวลาจริง แม้ตอนปิดเว็บไป '
+        + 'แวะมาให้อาหารและน้ำบ่อยๆ นะ (กดที่ตัวแมวเพื่อดูแล)' }));
+      careCard.appendChild(h('div', { class: 'pet-care-actions' }, [
+        h('button', { type: 'button', class: 'btn btn-deal', text: 'รับเลี้ยง', onclick: function () {
+          pet.cfg.care = { adoptedAt: Date.now(), food: 80, water: 80, lastTick: Date.now(), stats: { meals: 0, drinks: 0 } };
+          closeCareCard();
+          say(pet, 'เมี้ยว~ ฝากตัวด้วยนะ');
+          careUpdate();
+          save();
+        } }),
+        h('button', { type: 'button', class: 'btn btn-ghost', text: 'ยังก่อน', onclick: closeCareCard })
+      ]));
+    }
+    careCard.hidden = false;
+    var first = careCard.querySelector('button');
+    if (first) { first.focus({ preventScroll: true }); }
   }
 
   // ── UI helpers ─────────────────────────────
@@ -861,6 +1033,7 @@
     radialFor = null;
     radial.classList.remove('is-open');
     radial.hidden = true;
+    careBars.hidden = true;
     fabBtn.setAttribute('aria-expanded', 'false');
   }
 
@@ -877,16 +1050,23 @@
     }
     closeRadial();
     act(pet, 'held', performance.now(), 0, { seq: SEQUENCES.look, loop: SEQUENCES.look });
-    var items = commandItems([pet.cfg.id]).concat([{ icon: 'edit', label: 'แก้ไข ' + pet.cfg.name, short: 'แก้ไขแมว', tone: 'ink', run: function () {
+    var care = pet.cfg.care ? [
+      { icon: 'feed', label: 'ให้อาหาร ' + pet.cfg.name, short: 'ให้อาหาร', tone: 'orange', run: function () { serve(pet, 'feed'); } },
+      { icon: 'drink', label: 'ให้น้ำ ' + pet.cfg.name, short: 'ให้น้ำ', tone: 'sky', run: function () { serve(pet, 'drink'); } }
+    ] : [
+      { icon: 'adopt', label: 'รับ ' + pet.cfg.name + ' มาเลี้ยง', short: 'รับเลี้ยง', tone: 'pink', run: function () { askAdopt(pet); } }
+    ];
+    var items = care.concat(commandItems([pet.cfg.id])).concat([{ icon: 'edit', label: 'แก้ไข ' + pet.cfg.name, short: 'แก้ไขแมว', tone: 'ink', run: function () {
       openDrawer(pet.cfg.id);
     } }]);
-    var r = Math.max(118, pet.w * 0.72); // room for 11 icons with labels
+    var r = Math.max(132, pet.w * 0.8); // room for 13 icons with labels
     // Centre on the sitting cat's body (the frame box leaves room for walking tails on the right).
     var cx = pet.x + pet.w * 0.48;
     var cy = pet.y + pet.h * 0.55;
     cx = Math.max(r + 28, Math.min(window.innerWidth - r - 28, cx));
     cy = Math.max(r + 28, Math.min(window.innerHeight - r - 28, cy));
     openRadial(cx, cy, items, [{ r: r, count: items.length }], [-90, 270], pet);
+    showCareBars(pet);
   }
 
   // The 🐾 button: commands for every cat, plus design and show/hide.
@@ -923,6 +1103,8 @@
       fabBtn.setAttribute('aria-expanded', 'true');
     } }, [iconSvg('paw')]);
   document.body.appendChild(fabBtn);
+  document.body.appendChild(careBars);
+  document.body.appendChild(careCard);
 
   document.addEventListener('click', function (e) {
     if (radialFor && !radial.contains(e.target) && e.target !== fabBtn) {
@@ -933,6 +1115,7 @@
     if (e.key === 'Escape') {
       closeRadial();
       closeDrawer();
+      closeCareCard();
     }
   });
   window.addEventListener('scroll', function () { if (radialFor && radialFor !== 'all') { closeRadial(); } }, { passive: true });
@@ -1125,6 +1308,8 @@
     if (store.on) {
       showAll();
     }
+    careUpdate();
+    setInterval(careUpdate, 60000);
   }
   WAKE_EVENTS.forEach(function (type) { window.addEventListener(type, wake, { passive: true }); });
   function wakeLater() {
@@ -1140,6 +1325,23 @@
   // For trying things out from the browser console: petCats.command('zoom'), petCats.command('play', 0)
   window.petCats = {
     presets: PRESETS,
+    // Care testing: petCats.care.fastForward(10) ages every adopted cat 10 hours; set(0, { food: 5 }); status()
+    care: {
+      fastForward: function (hours) {
+        adopted().forEach(function (c) { c.care.lastTick -= hours * HOUR; });
+        careUpdate();
+        save();
+      },
+      set: function (index, values) {
+        var c = store.cats[index];
+        if (c && c.care) { Object.assign(c.care, values); careUpdate(); save(); }
+      },
+      status: function () {
+        return adopted().map(function (c) {
+          return { name: c.name, food: Math.round(c.care.food), water: Math.round(c.care.water), need: careNeed(c.care) };
+        });
+      }
+    },
     debug: function () {
       return Object.keys(pets).map(function (k) {
         var p = pets[k];
