@@ -68,6 +68,8 @@ php bin/seed-demo.php      # (ไม่บังคับ) ใส่สินค
 | เนื้อหาหน้าสายพันธุ์ | Wikipedia ภาษาไทย / Wikidata | CC BY-SA 4.0 (ต้องให้เครดิต + ใช้สัญญาเดียวกัน) / CC0 |
 | ดาวในฉากหัวเว็บ | ["Cat, Sleeping Cat, Cartoon Cat" โดย VectorBy บน Pixabay](https://pixabay.com/vectors/cat-6940169/) | Pixabay Content License — ใช้เชิงพาณิชย์ได้ ห้ามใช้เป็นโลโก้ |
 | โลโก้ favicon ไอคอนหมวด ลายอุ้งเท้า รูปแมวแทนรูปสินค้า | วาดใหม่เป็น SVG ในโปรเจกต์นี้ ([inc/illustrations.php](inc/illustrations.php)) | เป็นของเว็บนี้เอง |
+| ภาพปกบทความ (`assets/img/articles`) | [Unsplash](https://unsplash.com) — รายชื่อช่างภาพอยู่ใน `content/article-covers.json` และแสดงใต้ภาพในหน้าบทความ | Unsplash License — ใช้เชิงพาณิชย์ได้ ไม่บังคับเครดิต (เราใส่ให้) |
+| ภาพสายพันธุ์แมว | Wikimedia Commons (ภาพหลักของหน้า Wikipedia ไทย) ดึงโดย `fetch_breeds()` | ตามไฟล์ — ส่วนใหญ่ CC BY / CC BY-SA **ต้องให้เครดิต** (แสดงชื่อผู้ถ่าย + ไลเซนส์ใต้ภาพอัตโนมัติ) |
 | รูปสินค้า | ลิงก์รูปจาก Shopee/Lazada ที่มากับลิงก์ Affiliate | ใช้ตามเงื่อนไขโปรแกรม Affiliate ของแต่ละแพลตฟอร์ม |
 
 ถ้าจะเพิ่มรูปปกบทความ ให้ใช้รูปที่ถ่ายเอง หรือจากเว็บรูปฟรีที่อนุญาตใช้เชิงพาณิชย์ (เช่น Unsplash, Pexels) และอ่านเงื่อนไขของแต่ละรูปก่อนใช้
