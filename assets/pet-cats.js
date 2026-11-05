@@ -78,6 +78,7 @@
     // Care (docs/pet-care-game-spec.md): bowl and house drawn in the same style, droplet from Lucide.
     feed: "<path d=\"M3 12h18a9 6.5 0 0 1-18 0z\" /><path d=\"M8 21h8\" /><path d=\"M12 18.5V21\" /><path d=\"M8 8c0-1 1.2-1.4 1.2-2.4S8 4.4 8 3.4\" /><path d=\"M12.5 8c0-1 1.2-1.4 1.2-2.4s-1.2-1.2-1.2-2.2\" />",
     drink: "<path d=\"M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z\" />",
+    sick: "<path d=\"M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z\" />",
     adopt: "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />",
     paw: "<circle cx=\"11\" cy=\"4\" r=\"2\" /><circle cx=\"18\" cy=\"8\" r=\"2\" /><circle cx=\"20\" cy=\"16\" r=\"2\" /><path d=\"M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z\" />"
   };
@@ -217,6 +218,7 @@
       food: clamp100(c.food, 100),
       water: clamp100(c.water, 100),
       lastTick: Math.min(now, Number(c.lastTick) || now),
+      sick: Math.max(0, Math.min(2, c.sick | 0)),  // 0 well, 1 sick, 2 very sick (stage 2 sets it)
       stats: { meals: stats.meals | 0, drinks: stats.drinks | 0 }
     };
   }
@@ -231,6 +233,7 @@
   /** What the cat wants most right now, or null. */
   function careNeed(care) {
     if (!care) { return null; }
+    if (care.sick) { return 'sick'; }
     if (care.water < CARE.low && care.water <= care.food) { return 'drink'; }
     if (care.food < CARE.low) { return 'feed'; }
     if (care.water < CARE.low) { return 'drink'; }
@@ -479,7 +482,8 @@
     stretch: [['cs6', 400], ['sl2', 1700], ['sl4', 600], ['cs1', 300]],
     curious: [['sl4', 700], ['sl3', 1800], ['sl4', 500], ['sl3', 1200], ['cs1', 300]],    // stands up, looks up at something
     look: [['cs5', 1400], ['cs1', 200], ['cs4', 900]],
-    eat: [['cs4', 500], ['cs1', 350], ['cs4', 500], ['cs1', 350], ['cs4', 500], ['cs1', 300]]  // heads down to the bowl
+    eat: [['sl8', 3200]],                    // crouched, nose in the bowl (the bob comes from .is-eating)
+    sick: [['cs6', 2200], ['cs7', 1800]]     // low, droopy, eyes half shut
   };
   var WEIGHTS = {
     normal: { walk: 20, trot: 7, sit: 14, yawn: 5, sleep: 9, zoom: 7, play: 8, dash: 20, hunt: 9, stretch: 3, curious: 6 },
@@ -541,6 +545,15 @@
       }
       return;
     }
+    if (pet.cfg.care && pet.cfg.care.sick) {
+      // A sick cat has no energy: it lies low and dozes, now and then shuffles a few steps.
+      if (Math.random() < 0.15) {
+        act(pet, 'walk', now, 8000, { target: [pet.x + rand(-120, 120), pet.y + rand(-30, 30)] });
+      } else {
+        act(pet, 'yawn', now, rand(8000, 15000), { seq: SEQUENCES.sick, loop: SEQUENCES.sick });
+      }
+      return;
+    }
     var free = others(pet).filter(function (p) { return !busy(p); });
     var w = Object.assign({}, WEIGHTS[pet.cfg.mood] || WEIGHTS.normal);
     if (!free.length) { w.play = 0; }
@@ -551,6 +564,11 @@
   /** Make one cat do something (used by the random brain and by the command buttons). */
   function command(pet, what, now, playmates) {
     var sleepy = pet.cfg.mood === 'sleepy' ? 1.5 : 1;
+    if (pet.cfg.care && pet.cfg.care.sick && what !== 'come' && what !== 'sleep') {
+      // Too unwell for running, hunting or playing: it stays down whatever it is asked.
+      act(pet, 'yawn', now, rand(8000, 15000), { seq: SEQUENCES.sick, loop: SEQUENCES.sick });
+      return;
+    }
     if (what === 'walk' || what === 'trot') {
       var stroll = Math.random() < 0.2; // sometimes wander off one side and back in the other
       act(pet, what, now, 25000, { target: stroll ? exitSpot(pet) : randomSpot(pet), through: stroll });
@@ -867,6 +885,7 @@
       anyNeed = anyNeed || !!need;
       var pet = pets[cfg.id];
       if (pet) {
+        pet.el.classList.toggle('is-sick', !!cfg.care.sick);
         pet.need.hidden = !need;
         if (need) {
           pet.need.textContent = '';
@@ -896,18 +915,38 @@
     }
     care[key] = Math.min(100, care[key] + (what === 'feed' ? CARE.feed : CARE.drink));
     care.stats[what === 'feed' ? 'meals' : 'drinks']++;
-    var bowl = h('span', { class: 'pet-bowl pet-bowl-' + what }, [iconSvg(what)]);
-    var size = Math.max(30, pet.w * 0.28);
+    // The bowl sits just in front of the nose of the crouched pose (sl8: nose tip at about x 262 of 320, ground at y 146).
+    var size = Math.max(24, pet.w * 0.17);
+    var noseX = pet.face > 0 ? 280 / 320 : 40 / 320;
+    var bowl = h('span', { class: 'pet-bowl' });
+    bowl.innerHTML = BOWL_SVG[what]; // fixed markup defined below, never user input
     bowl.style.width = size + 'px';
-    bowl.style.left = (pet.face > 0 ? pet.x + pet.w * 0.78 : pet.x + pet.w * 0.08 - size * 0.5) + 'px';
-    bowl.style.top = (pet.y + pet.h - size * 0.9) + 'px';
+    bowl.style.left = (pet.x + pet.w * noseX - size / 2) + 'px';
+    bowl.style.top = (pet.y + pet.h * (146 / 150) - size * 0.62) + 'px';
     document.body.appendChild(bowl);
     act(pet, 'sit', performance.now(), 3200, { seq: SEQUENCES.eat });
-    setTimeout(function () { bowl.classList.add('is-done'); }, 2900);
-    setTimeout(function () { bowl.remove(); }, 3500);
+    pet.el.classList.add(what === 'feed' ? 'is-eating' : 'is-drinking');
+    setTimeout(function () {
+      pet.el.classList.remove('is-eating', 'is-drinking');
+      bowl.classList.add('is-done');
+    }, 3100);
+    setTimeout(function () { bowl.remove(); }, 3600);
     careUpdate();
     save();
   }
+
+  // Side-view bowls in the site's flat style: a blue dish with kibble, or with water and a highlight.
+  var BOWL_SVG = {
+    feed: '<svg viewBox="0 0 48 30" aria-hidden="true"><ellipse cx="24" cy="27" rx="19" ry="2.6" fill="rgba(0,0,0,.12)"/>'
+      + '<circle cx="15" cy="11" r="4" fill="#a35a2a"/><circle cx="21" cy="9" r="4.2" fill="#c27a3e"/><circle cx="27" cy="10" r="4" fill="#a35a2a"/>'
+      + '<circle cx="33" cy="11" r="3.8" fill="#c27a3e"/><circle cx="24" cy="12" r="3.6" fill="#8e4c22"/>'
+      + '<path d="M4 12h40l-4.5 13a3 3 0 0 1-2.8 2H11.3a3 3 0 0 1-2.8-2z" fill="#6aa6dc"/>'
+      + '<path d="M4 12h40l-1 3H5z" fill="#4f8fca"/><path d="M10 17h4l-1 6h-2z" fill="#fff" opacity=".35"/></svg>',
+    drink: '<svg viewBox="0 0 48 30" aria-hidden="true"><ellipse cx="24" cy="27" rx="19" ry="2.6" fill="rgba(0,0,0,.12)"/>'
+      + '<ellipse cx="24" cy="12" rx="19" ry="3.4" fill="#cfe9fb"/><ellipse cx="19" cy="11.4" rx="6" ry="1.1" fill="#fff" opacity=".8"/>'
+      + '<path d="M4 12a20 3.6 0 0 0 40 0l-4.5 13a3 3 0 0 1-2.8 2H11.3a3 3 0 0 1-2.8-2z" fill="#e2768c"/>'
+      + '<path d="M10 17h4l-1 6h-2z" fill="#fff" opacity=".35"/></svg>'
+  };
 
   /** Small bars under the cat (food / water) while its command circle is open. */
   var careBars = h('div', { class: 'pet-care-bars', hidden: true });

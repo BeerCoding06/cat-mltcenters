@@ -512,12 +512,19 @@ h1, h2, h3 { letter-spacing: -.005em; }
 @keyframes need-bob { 50% { transform: translateY(-4px); } }
 .pet-say { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); white-space: nowrap; background: #fff; color: var(--ink);
   font-size: .8rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; box-shadow: 0 3px 10px -3px rgba(60, 30, 10, .4); pointer-events: none; }
-.pet-bowl { position: fixed; z-index: 29; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%;
-  background: #fff; box-shadow: 0 4px 12px -4px rgba(60, 30, 10, .45); pointer-events: none; transition: opacity .5s, transform .5s; }
-.pet-bowl .pet-icon { width: 62%; height: 62%; }
-.pet-bowl-feed { color: #b5560f; }
-.pet-bowl-drink { color: #2f6ea8; }
-.pet-bowl.is-done { opacity: 0; transform: scale(.6); }
+.pet-bowl { position: fixed; z-index: 31; pointer-events: none; transition: opacity .5s, transform .5s; transform-origin: 50% 100%;
+  animation: bowl-in .35s ease-out; }
+.pet-bowl svg { display: block; width: 100%; height: auto; }
+.pet-bowl.is-done { opacity: 0; transform: scale(.7); }
+@keyframes bowl-in { from { opacity: 0; transform: translateY(-14px) scale(.8); } }
+/* Head bobs into the bowl: the crouched frame tips forward around its back legs */
+.pet-cat.is-eating svg { animation: nibble .42s ease-in-out infinite alternate; transform-origin: 40% 100%; }
+.pet-cat.is-drinking svg { animation: lap .22s ease-in-out infinite alternate; transform-origin: 40% 100%; }
+@keyframes nibble { from { transform: scaleX(var(--sx)) rotate(0deg); } to { transform: scaleX(var(--sx)) rotate(2.4deg); } }
+@keyframes lap { from { transform: scaleX(var(--sx)) rotate(.4deg); } to { transform: scaleX(var(--sx)) rotate(1.6deg); } }
+/* Sick: washed-out colours and slow, low poses (pet-cats.js) */
+.pet-cat.is-sick svg { filter: saturate(.45) brightness(.97); }
+.pet-need-sick { color: #c2445f; }
 .pet-care-bars { position: fixed; z-index: 34; transform: translateX(-50%); display: grid; gap: 4px; padding: 6px 10px; background: #fff;
   border-radius: 12px; box-shadow: 0 6px 18px -8px rgba(60, 30, 10, .5); pointer-events: none; }
 .pet-care-bar { display: flex; align-items: center; gap: 6px; }
