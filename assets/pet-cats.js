@@ -1653,6 +1653,21 @@
   // For trying things out from the browser console: petCats.command('zoom'), petCats.command('play', 0)
   window.petCats = {
     presets: PRESETS,
+    // The "start playing" button on /game: bring the cats out and offer the first one not yet adopted.
+    play: function () {
+      wake();
+      if (!store.on) {
+        store.on = true;
+        showAll();
+        save();
+      }
+      var free = Object.keys(pets).map(function (k) { return pets[k]; }).filter(function (p) { return !p.cfg.care; });
+      if (free.length) {
+        askAdopt(free[0]);
+      } else {
+        openDrawer();
+      }
+    },
     // Care testing: petCats.care.fastForward(10) ages every adopted cat 10 hours; set(0, { food: 5 }); status()
     care: {
       fastForward: function (hours) {

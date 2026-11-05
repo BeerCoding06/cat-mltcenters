@@ -31,6 +31,8 @@ if ($path === '') {
     page_robots();
 } elseif ($path === 'about') {
     render('about');
+} elseif ($path === 'game') {
+    render('game', ['articles' => articles_published(3)]);
 } else {
     render('404', [], 404);
 }
@@ -246,7 +248,8 @@ function page_sitemap(): void
 {
     header('Content-Type: application/xml; charset=utf-8');
     $urls = [['loc' => abs_url(''), 'lastmod' => null], ['loc' => abs_url('blog'), 'lastmod' => null],
-             ['loc' => abs_url('breeds'), 'lastmod' => null], ['loc' => abs_url('news'), 'lastmod' => null]];
+             ['loc' => abs_url('breeds'), 'lastmod' => null], ['loc' => abs_url('news'), 'lastmod' => null],
+             ['loc' => abs_url('game'), 'lastmod' => null]];
     foreach (db_all('SELECT slug, fetched_at FROM breeds ORDER BY name_th') as $row) {
         $urls[] = ['loc' => abs_url('breed/' . rawurlencode($row['slug'])), 'lastmod' => substr($row['fetched_at'], 0, 10)];
     }

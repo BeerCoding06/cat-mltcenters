@@ -50,6 +50,7 @@ $shareImage = !empty($ogImage) ? $ogImage : abs_url('assets/og-default.jpg');
         <a href="<?= e(url('breeds')) ?>">สายพันธุ์</a>
         <a href="<?= e(url('news')) ?>">ข่าวแมว</a>
         <a href="<?= e(url('blog')) ?>">บทความ</a>
+        <a href="<?= e(url('game')) ?>">เกมแมว</a>
       </nav>
       <form class="search" action="<?= e(url()) ?>" method="get" role="search">
         <input type="search" name="q" value="<?= e($search ?? '') ?>" placeholder="<?= e(config('search_placeholder', 'ค้นหาสินค้า')) ?>" aria-label="ค้นหาสินค้า">
