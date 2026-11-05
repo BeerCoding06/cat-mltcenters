@@ -33,8 +33,9 @@ $shareImage = !empty($ogImage) ? $ogImage : abs_url('assets/og-default.jpg');
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- Fonts: Mali + IBM Plex Sans Thai Looped, both SIL Open Font License (free for commercial use) -->
-  <?php $fontsCss = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600;700&family=Mali:wght@500;600;700&display=swap'; ?>
-  <!-- Loaded without blocking the first paint; the system font shows until it arrives (font-display: swap) -->
+  <?php $fontsCss = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600;700&family=Mali:wght@500;600;700&display=optional'; ?>
+  <!-- Loaded without blocking the first paint. display=optional: if the font is not there almost at once the page
+       keeps the system font for this view (no jump in layout); it is cached and used from the next page on. -->
   <link rel="preload" href="<?= e($fontsCss) ?>" as="style">
   <link href="<?= e($fontsCss) ?>" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link href="<?= e($fontsCss) ?>" rel="stylesheet"></noscript>
