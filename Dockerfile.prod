@@ -6,7 +6,7 @@ FROM php:8.2-apache
 # The official image already has pdo_sqlite, curl, mbstring and simplexml; only .htaccess support is missing.
 RUN a2enmod rewrite headers \
  && sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf \
- && printf 'ServerName localhost\n# TLS ends at Traefik/Cloudflare; without this, sitemap and robots links come out as http://\nSetEnvIf X-Forwarded-Proto "^https$" HTTPS=on\n' \
+ && printf 'ServerName localhost\n# TLS ends at Traefik/Cloudflare; without this, sitemap and robots links come out as http://\nSetEnvIf X-Forwarded-Proto "^https$" HTTPS=on\nSetEnvIf CF-Visitor "https" HTTPS=on\n' \
       > /etc/apache2/conf-enabled/proxy-https.conf \
  && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
