@@ -1,5 +1,5 @@
 # Secrets and local settings — copy config.sample.php and run `php bin/setup.php` instead
-config.php
+/config.php
 data/*
 !data/.htaccess
 .DS_Store
