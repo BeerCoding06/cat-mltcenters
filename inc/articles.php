@@ -368,10 +368,15 @@ function articles_apply_covers(string $file = ARTICLE_COVERS_FILE): int
         if (empty($c['image'])) {
             continue;
         }
+        // Stock covers (our own /assets/img/articles files) follow the JSON, so a swapped photo and its credit reach the
+        // live site; a cover the admin uploaded or linked elsewhere is never touched.
+        $credit = json_encode(['author' => (string) ($c['author'] ?? ''), 'source' => (string) ($c['source'] ?? '')],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $count += db_run(
-            "UPDATE articles SET cover_image = ?, cover_credit = ? WHERE slug = ? AND cover_image = ''",
-            [(string) $c['image'], json_encode(['author' => (string) ($c['author'] ?? ''), 'source' => (string) ($c['source'] ?? '')],
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), (string) $slug]
+            "UPDATE articles SET cover_image = ?, cover_credit = ?
+             WHERE slug = ? AND (cover_image = '' OR cover_image LIKE '/assets/img/articles/%')
+               AND (cover_image <> ? OR cover_credit IS NOT ?)",
+            [(string) $c['image'], $credit, (string) $slug, (string) $c['image'], $credit]
         );
     }
     return $count;

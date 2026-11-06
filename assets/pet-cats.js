@@ -100,7 +100,7 @@
     ['hunt', 'ล่าเหยื่อ', 'olive'], ['stretch', 'บิดขี้เกียจ', 'peach']
   ];
 
-  // Icons: Lucide v0.454.0 (ISC licence, lucide.dev) — footprints, zap, cat, bed, arrow-left-right, map-pin, pencil,
+  // Icons: Lucide v0.454.0 (ISC licence, lucide.dev; full text in assets/LICENSE-lucide.txt) — footprints, zap, cat, bed, arrow-left-right, map-pin, pencil,
   // eye-off, eye, paw-print, crosshair, sunrise. "yawn" and "play" are drawn here in the same style (24 grid, 2px round strokes).
   var ICONS = {
     hunt: "<circle cx=\"12\" cy=\"12\" r=\"10\" /><line x1=\"22\" x2=\"18\" y1=\"12\" y2=\"12\" /><line x1=\"6\" x2=\"2\" y1=\"12\" y2=\"12\" /><line x1=\"12\" x2=\"12\" y1=\"6\" y2=\"2\" /><line x1=\"12\" x2=\"12\" y1=\"22\" y2=\"18\" />",

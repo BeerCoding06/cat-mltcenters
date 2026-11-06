@@ -37,9 +37,10 @@ if (breed_photo_url($breed) !== '') {
       <figure class="breed-photo">
         <img class="photo" src="<?= e(breed_photo_url($breed)) ?>" alt="แมว<?= e($breed['name_th']) ?>" width="800" height="600">
         <?php if ($credit): ?>
-          <figcaption>ภาพ: <?= e($credit['artist']) ?> ·
+          <figcaption>ภาพ: <?php if ($credit['artist'] === '' || $credit['artist'] === 'ไม่ระบุชื่อ'): ?><a href="<?= e($credit['source']) ?>" rel="nofollow noopener" target="_blank">ผู้สร้างตามหน้าไฟล์</a><?php else: ?><?= e($credit['artist']) ?><?php endif; ?> ·
             <?php if ($credit['license_url'] !== ''): ?><a href="<?= e($credit['license_url']) ?>" rel="nofollow noopener license" target="_blank"><?= e($credit['license']) ?></a><?php else: ?><?= e($credit['license']) ?><?php endif; ?>
-            · <a href="<?= e($credit['source']) ?>" rel="nofollow noopener" target="_blank">Wikimedia Commons</a></figcaption>
+            · <a href="<?= e($credit['source']) ?>" rel="nofollow noopener" target="_blank">Wikimedia Commons</a>
+            · ดัดแปลง: ครอปและปรับโทนสี<?= stripos((string) $credit['license'], 'SA') !== false ? ' (เผยแพร่ภายใต้สัญญาอนุญาตเดียวกัน)' : '' ?></figcaption>
         <?php endif; ?>
       </figure>
     <?php else: ?>

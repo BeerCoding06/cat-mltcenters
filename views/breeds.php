@@ -22,4 +22,5 @@ $canonical = abs_url('breeds');
 
 <p class="source-note">ข้อมูลสายพันธุ์จาก <a href="https://www.wikidata.org" rel="nofollow noopener" target="_blank">Wikidata</a>
   และ <a href="https://th.wikipedia.org" rel="nofollow noopener" target="_blank">Wikipedia ภาษาไทย</a>
-  (<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.th" rel="nofollow noopener" target="_blank">CC BY-SA 4.0</a>)</p>
+  (<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.th" rel="nofollow noopener" target="_blank">CC BY-SA 4.0</a>)
+  · ภาพแมวจาก Wikimedia Commons ดัดแปลง (ครอปและปรับโทนสี) ดูชื่อผู้ถ่ายและสัญญาอนุญาตได้ในหน้าของแต่ละสายพันธุ์</p>
