@@ -74,6 +74,7 @@ $shareImage = !empty($ogImage) ? $ogImage : abs_url('assets/og-default.jpg');
       <p class="footer-links">
         <a href="<?= e(url('about')) ?>">เกี่ยวกับเรา</a> ·
         <a href="<?= e(url('sitemap.xml')) ?>">แผนผังเว็บไซต์</a> ·
+        <a href="<?= e((string) config('facebook_url')) ?>" rel="noopener me" target="_blank">เพจ Facebook</a> ·
         © <?= date('Y') ?> <?= e($siteName) ?>
       </p>
       <p class="credits">ภาพประกอบแมว: <a href="https://www.freepik.com" rel="nofollow noopener" target="_blank">Freepik</a> ·

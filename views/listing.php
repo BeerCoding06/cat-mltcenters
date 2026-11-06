@@ -26,6 +26,7 @@ if ($category !== null) {
                 'name'  => config('site_name'),
                 'url'   => abs_url(),
                 'logo'  => abs_url('assets/og-default.jpg'),
+                'sameAs' => [(string) config('facebook_url')],
             ],
         ],
     ];

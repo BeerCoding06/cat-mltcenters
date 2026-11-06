@@ -1,8 +1,13 @@
 <?php
 
+/** Defaults for settings that config.php may leave out. */
+const CONFIG_DEFAULTS = [
+    'facebook_url' => 'https://www.facebook.com/profile.php?id=61596430704549',
+];
+
 function config(string $key, $default = null)
 {
-    return $GLOBALS['config'][$key] ?? $default;
+    return $GLOBALS['config'][$key] ?? CONFIG_DEFAULTS[$key] ?? $default;
 }
 
 function e($value): string
