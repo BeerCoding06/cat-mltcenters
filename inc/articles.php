@@ -316,7 +316,9 @@ function articles_sync_schedule(string $dir = ARTICLE_FILES_DIR): int
     $now = now();
     $count = 0;
     foreach (glob($dir . '/*.md') ?: [] as $file) {
-        $head = (string) file_get_contents($file, false, null, 0, 2000);
+        // The whole front matter: a long Thai title and excerpt (3 bytes a letter) can push publish_at past the first KB or two.
+        $text = str_replace("\r\n", "\n", (string) file_get_contents($file));
+        $head = preg_match('/^---\n(.*?)\n---\n/s', $text, $fm) ? $fm[1] : '';
         if (!preg_match('/^slug:\s*(.+)$/mu', $head, $slug) || !preg_match('/^publish_at:\s*(.+)$/mu', $head, $at)) {
             continue;
         }
