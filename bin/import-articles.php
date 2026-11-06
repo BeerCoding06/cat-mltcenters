@@ -13,7 +13,8 @@ require dirname(__DIR__) . '/inc/bootstrap.php';
 
 $result = articles_import_files(ARTICLE_FILES_DIR, in_array('--publish', $argv, true));
 $result['covers'] = articles_apply_covers();
-echo date('Y-m-d H:i:s') . " created={$result['created']} skipped={$result['skipped']} covers={$result['covers']} errors=" . count($result['errors']) . "\n";
+$result['rescheduled'] = articles_sync_schedule();
+echo date('Y-m-d H:i:s') . " created={$result['created']} skipped={$result['skipped']} covers={$result['covers']} rescheduled={$result['rescheduled']} errors=" . count($result['errors']) . "\n";
 foreach ($result['errors'] as $file => $error) {
     echo "  $file: $error\n";
 }

@@ -307,6 +307,31 @@ function articles_import_files(string $dir = ARTICLE_FILES_DIR, bool $publish = 
     return $result;
 }
 
+/**
+ * Moves articles that are still waiting to go live to the publish_at now written in their file, so a new schedule
+ * in content/articles reaches articles imported earlier. Live articles and past times are never touched.
+ */
+function articles_sync_schedule(string $dir = ARTICLE_FILES_DIR): int
+{
+    $now = now();
+    $count = 0;
+    foreach (glob($dir . '/*.md') ?: [] as $file) {
+        $head = (string) file_get_contents($file, false, null, 0, 2000);
+        if (!preg_match('/^slug:\s*(.+)$/mu', $head, $slug) || !preg_match('/^publish_at:\s*(.+)$/mu', $head, $at)) {
+            continue;
+        }
+        $when = date('Y-m-d H:i:s', (int) strtotime(trim($at[1])));
+        if ($when <= $now) {
+            continue;
+        }
+        $count += db_run(
+            'UPDATE articles SET published_at = ?, updated_at = ? WHERE slug = ? AND published_at > ? AND published_at <> ?',
+            [$when, $now, slugify(trim($slug[1])), $now, $when]
+        );
+    }
+    return $count;
+}
+
 /** Approves every draft that has a publish time: each goes live on its own when that time comes. */
 function articles_approve_scheduled(): int
 {
