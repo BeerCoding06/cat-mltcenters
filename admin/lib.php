@@ -9,6 +9,11 @@ function admin_session_start(): void
         session_set_cookie_params(0, $path, '', false, true);
     }
     session_name('deal_admin');
+    // Keep sessions in the data volume: the container's /tmp is wiped on every deploy, which logged the admin out.
+    $dir = APP_ROOT . '/data/sessions';
+    if (is_dir($dir) || @mkdir($dir, 0700, true)) {
+        session_save_path($dir);
+    }
     session_start();
 }
 
