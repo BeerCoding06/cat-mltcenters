@@ -249,7 +249,8 @@ function action_dashboard(): void
           <p class="muted">ยังไม่ได้ตั้งค่า — ใส่ Page Access Token ใน Dokploy › Environment เป็น <code>FB_PAGE_TOKEN</code> แล้ว deploy ใหม่
              บทความที่ขึ้นเว็บหลังจากนั้นจะโพสต์ลงเพจเอง (เช็กทุก 10 นาที)</p>
         <?php else: ?>
-          <p>เปิดใช้งานแล้ว · เช็กทุก 10 นาที<?= $lastFacebook ? ' · ล่าสุด ' . e($lastFacebook['finished_at']) : '' ?></p>
+          <p>เปิดใช้งานแล้ว · เช็กทุก 10 นาที<?= !empty($lastFacebook['page']) ? ' · โพสต์ในนามเพจ <strong>' . e($lastFacebook['page']) . '</strong>' : '' ?>
+             <?= $lastFacebook ? ' · ล่าสุด ' . e($lastFacebook['finished_at']) : '' ?></p>
           <?php if (!empty($lastFacebook['stopped'])): ?><p class="error"><?= e($lastFacebook['stopped']) ?></p><?php endif; ?>
         <?php endif; ?>
         <?php if ($fbRecent): ?>

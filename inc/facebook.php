@@ -4,8 +4,27 @@
 
 function facebook_configured(): bool
 {
-    $fb = (array) config('facebook', []);
-    return ($fb['page_id'] ?? '') !== '' && ($fb['page_token'] ?? '') !== '';
+    return (string) (((array) config('facebook', []))['page_token'] ?? '') !== '';
+}
+
+/**
+ * The Page the token posts as, or an error. With a Page access token "me" is the Page itself, so no Page ID is
+ * needed; a user token has no "category" and is refused here instead of failing on every post.
+ * Returns [page|null, error|null].
+ */
+function facebook_page(): array
+{
+    $fb = (array) config('facebook');
+    list($status, $data) = http_post_json(rtrim($fb['graph_url'], '/') . '/me', [
+        'method' => 'get', 'fields' => 'id,name,category', 'access_token' => $fb['page_token'],
+    ]);
+    if ($status === 200 && !empty($data['category'])) {
+        return [$data, null];
+    }
+    if ($status === 200) {
+        return [null, 'token นี้เป็นของผู้ใช้ ไม่ใช่ของเพจ — ใช้ค่า access_token ของเพจจากผลลัพธ์ me/accounts'];
+    }
+    return [null, 'token ใช้ไม่ได้หรือหมดอายุ: ' . mb_substr((string) ($data['error']['message'] ?? ('HTTP ' . $status)), 0, 200)];
 }
 
 function facebook_status_file(): string
@@ -43,15 +62,29 @@ function facebook_message(array $article): string
  */
 function facebook_post_due(): array
 {
-    $result = ['posted' => [], 'errors' => [], 'stopped' => null];
+    $result = ['posted' => [], 'errors' => [], 'stopped' => null, 'page' => null];
     if (!facebook_configured()) {
         $result['stopped'] = 'ยังไม่ได้ตั้งค่า FB_PAGE_TOKEN';
         return $result;
     }
+    $due = facebook_due_articles();
+    if (!$due) {
+        return $result;
+    }
     $fb = (array) config('facebook');
-    foreach (facebook_due_articles() as $article) {
+    try {
+        list($page, $error) = facebook_page();
+    } catch (Throwable $ex) {
+        list($page, $error) = [null, $ex->getMessage()];
+    }
+    if (!$page) {
+        $result['stopped'] = $error;
+        return $result;
+    }
+    $result['page'] = $page['name'];
+    foreach ($due as $article) {
         try {
-            list($status, $data) = http_post_json(rtrim($fb['graph_url'], '/') . '/' . rawurlencode($fb['page_id']) . '/feed', [
+            list($status, $data) = http_post_json(rtrim($fb['graph_url'], '/') . '/me/feed', [
                 'message'      => facebook_message($article),
                 'link'         => abs_url('a/' . rawurlencode($article['slug'])),
                 'access_token' => $fb['page_token'],

@@ -13,7 +13,6 @@ $config['site_url'] = rtrim((string) (getenv('SITE_URL') ?: 'https://cat.mltcent
 $config['shopee_api']['app_id'] = (string) getenv('SHOPEE_APP_ID');
 $config['shopee_api']['secret'] = (string) getenv('SHOPEE_SECRET');
 $config['thecatapi_key'] = (string) getenv('THECATAPI_KEY');
-$config['facebook']['page_id'] = (string) (getenv('FB_PAGE_ID') ?: '61596430704549');
 $config['facebook']['page_token'] = (string) getenv('FB_PAGE_TOKEN');
 if (getenv('FB_GRAPH_URL')) {
     $config['facebook']['graph_url'] = rtrim((string) getenv('FB_GRAPH_URL'), '/');

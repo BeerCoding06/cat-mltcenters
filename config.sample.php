@@ -45,7 +45,6 @@ return [
     // Facebook Page auto-posting (bin/post-facebook.php): every article that goes live is shared on the Page once.
     // The token is a long-lived Page access token with pages_manage_posts — keep it out of git and chat.
     'facebook' => [
-        'page_id'    => '',
         'page_token' => '',
         'graph_url'  => 'https://graph.facebook.com/v21.0',
         'max_age_hours' => 24,   // only articles published within this window are posted (no backlog flood)
