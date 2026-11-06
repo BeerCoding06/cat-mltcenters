@@ -44,6 +44,8 @@ CREATE TABLE IF NOT EXISTS visits (
     day          TEXT    NOT NULL,                 -- Y-m-d
     visitor_hash TEXT    NOT NULL,                 -- salted daily hash, no raw IP stored
     views        INTEGER NOT NULL DEFAULT 1,
+    source       TEXT    NOT NULL DEFAULT '',      -- where the first view of the day came from: Google, LINE, เข้าตรง…
+    landing      TEXT    NOT NULL DEFAULT '',      -- path of that first page, no query string
     PRIMARY KEY (day, visitor_hash)
 );
 

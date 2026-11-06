@@ -94,3 +94,5 @@ code { background: #f1eee8; padding: 1px 5px; border-radius: 4px; font-size: .9e
 .report-cell { width: 45%; }
 .report-bar { display: block; height: 10px; border-radius: 99px; background: var(--cream-deep); overflow: hidden; }
 .report-bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.visit-bars { position: relative; }
+.goal-line { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--accent, #b04a15); pointer-events: none; }

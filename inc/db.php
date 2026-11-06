@@ -1,6 +1,6 @@
 <?php
 
-const SCHEMA_VERSION = 9;
+const SCHEMA_VERSION = 10;
 
 /** Changes to tables that already exist; new tables just go in schema.sql. Keyed by the version they bring the DB to. */
 const MIGRATIONS = [
@@ -20,6 +20,10 @@ const MIGRATIONS = [
         'ALTER TABLE articles ADD COLUMN fb_post_id TEXT',
         'ALTER TABLE articles ADD COLUMN fb_posted_at TEXT',
         'ALTER TABLE articles ADD COLUMN fb_error TEXT',
+    ],
+    10 => [
+        "ALTER TABLE visits ADD COLUMN source TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE visits ADD COLUMN landing TEXT NOT NULL DEFAULT ''",
     ],
 ];
 

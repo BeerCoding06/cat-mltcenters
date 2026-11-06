@@ -169,6 +169,23 @@ function action_dashboard(): void
     ];
     $productCount = db_one('SELECT COUNT(*) AS total, SUM(active) AS active FROM products');
 
+    // Visitors per day against the goal, and where they came from (first view of each visitor's day).
+    $visitDaily = [];
+    foreach (db_all('SELECT day, COUNT(*) AS n FROM visits WHERE day >= ? GROUP BY day', [date('Y-m-d', strtotime('-13 days'))]) as $row) {
+        $visitDaily[$row['day']] = (int) $row['n'];
+    }
+    $visitDays = [];
+    for ($i = 13; $i >= 0; $i--) {
+        $day = date('Y-m-d', strtotime("-{$i} days"));
+        $visitDays[$day] = $visitDaily[$day] ?? 0;
+    }
+    $visitScale = max(VISIT_GOAL, max($visitDays));
+    $visitWeek = array_sum(array_slice($visitDays, -7));
+    $sources = db_all("SELECT CASE WHEN source = '' THEN '(ก่อนเริ่มเก็บ)' ELSE source END AS source, COUNT(*) AS n
+                         FROM visits WHERE day >= ? GROUP BY 1 ORDER BY n DESC LIMIT 10", [date('Y-m-d', strtotime('-6 days'))]);
+    $landings = db_all("SELECT landing, COUNT(*) AS n FROM visits WHERE day >= ? AND landing <> '' GROUP BY landing ORDER BY n DESC LIMIT 10",
+                       [date('Y-m-d', strtotime('-6 days'))]);
+
     $daily = [];
     foreach (db_all('SELECT substr(clicked_at, 1, 10) AS day, COUNT(*) AS n FROM clicks WHERE clicked_at >= ? GROUP BY day', [date('Y-m-d 00:00:00', strtotime('-13 days'))]) as $row) {
         $daily[$row['day']] = (int) $row['n'];
@@ -279,6 +296,44 @@ function action_dashboard(): void
         <strong class="stat-value"><?= number_format((int) $productCount['active']) ?></strong>
         <span class="stat-sub">จากทั้งหมด <?= number_format((int) $productCount['total']) ?></span>
       </div>
+    </div>
+
+    <section class="panel">
+      <h2>คนเข้าเว็บต่อวัน · เป้าหมาย <?= VISIT_GOAL ?> คน</h2>
+      <p>วันนี้ <strong><?= number_format($visitDays[date('Y-m-d')]) ?></strong> คน ·
+         เฉลี่ย 7 วัน <strong><?= number_format($visitWeek / 7, 1) ?></strong> คน/วัน
+         (<?= round($visitWeek / 7 / VISIT_GOAL * 100) ?>% ของเป้า)</p>
+      <div class="bars visit-bars">
+        <span class="goal-line" style="bottom: calc(20px + (100% - 20px) * <?= round(VISIT_GOAL / $visitScale, 3) ?>)"></span>
+        <?php foreach ($visitDays as $day => $n): ?>
+          <div class="bar" title="<?= e(thai_date($day)) ?>: <?= $n ?> คน">
+            <span class="bar-fill" style="height: <?= round($n / $visitScale * 100) ?>%"></span>
+            <span class="bar-n"><?= $n ?: '' ?></span>
+            <span class="bar-day"><?= (int) substr($day, 8) ?></span>
+          </div>
+        <?php endforeach; ?>
+      </div>
+      <p class="muted small">นับคนไม่ซ้ำต่อวัน ไม่นับบอท · เส้นประ = เป้า <?= VISIT_GOAL ?> คน</p>
+    </section>
+
+    <div class="two-col">
+      <section class="panel">
+        <h2>คนมาจากไหน (7 วัน)</h2>
+        <?php if ($sources): ?>
+          <table class="table"><tr><th>ช่องทาง</th><th>คน</th></tr>
+            <?php foreach ($sources as $s): ?><tr><td><?= e($s['source']) ?></td><td><?= (int) $s['n'] ?></td></tr><?php endforeach; ?>
+          </table>
+        <?php else: ?><p class="muted">ยังไม่มีข้อมูล</p><?php endif; ?>
+        <p class="muted small">ใส่ ?utm_source=line หรือ ?utm_source=tiktok ท้ายลิงก์ที่แชร์ เพื่อให้แยกช่องทางได้แม่นขึ้น</p>
+      </section>
+      <section class="panel">
+        <h2>หน้าแรกที่คนเข้ามาเจอ (7 วัน)</h2>
+        <?php if ($landings): ?>
+          <table class="table"><tr><th>หน้า</th><th>คน</th></tr>
+            <?php foreach ($landings as $l): ?><tr><td><a href="<?= e(url(ltrim($l['landing'], '/'))) ?>" target="_blank" rel="noopener"><?= e(rawurldecode($l['landing'])) ?></a></td><td><?= (int) $l['n'] ?></td></tr><?php endforeach; ?>
+          </table>
+        <?php else: ?><p class="muted">ยังไม่มีข้อมูล</p><?php endif; ?>
+      </section>
     </div>
 
     <section class="panel">
