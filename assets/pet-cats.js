@@ -24,7 +24,8 @@
   var SIT_SCALE = 0.77;      // sqrt(walk-frame area / sit-frame area), measured from the sprite
   var SVG_NS = 'http://www.w3.org/2000/svg';
 
-  var PATTERNS = { solid: 'สีพื้น', tabby: 'ลายสลิด', socks: 'ถุงเท้าขาว', points: 'แต้มสี', calico: 'สามสี' };
+  var PATTERNS = { solid: 'สีพื้น', tabby: 'ลายสลิด', socks: 'ขาวสองสี', points: 'แต้มสี', calico: 'สามสี',
+    tortie: 'กระดองเต่า', shaded: 'ปลายขนเงิน' };
   var MOODS = { normal: 'ปกติ', sleepy: 'ขี้เซา', playful: 'ซนสุดๆ' };
 
   // ── Care game (docs/pet-care-game-spec.md, stage 1: adopt, food, water) ──
@@ -69,9 +70,29 @@
     'siamese': { label: 'วิเชียรมาศ', base: '#f3e6d0', accent: '#5a3d30', pattern: 'points', eye: '#6aa6dc', collar: '#e2768c' },
     'calico': { label: 'สามสี', base: '#f0974f', accent: '#3a3433', pattern: 'calico', eye: '#f2b134', collar: '#5bb38a' },
     'tuxedo': { label: 'ขาวดำ', base: '#2f2a2a', accent: '#1f1b1b', pattern: 'socks', eye: '#9bd36a', collar: '#e2768c' },
-    'cream': { label: 'ครีม', base: '#f1dcc0', accent: '#d8b48a', pattern: 'solid', eye: '#e8a23b', collar: '#6aa6dc' }
+    'cream': { label: 'ครีม', base: '#f1dcc0', accent: '#d8b48a', pattern: 'solid', eye: '#e8a23b', collar: '#6aa6dc' },
+    'ginger-white': { label: 'ส้มขาว', base: '#f2a057', accent: '#c8692a', pattern: 'socks', eye: '#8cc63f', collar: '#6aa6dc' },
+    'grey-white': { label: 'เทาขาว', base: '#8c949c', accent: '#5d6874', pattern: 'socks', eye: '#f2b134', collar: '#e2768c' },
+    'tortie': { label: 'กระดองเต่า', base: '#3d2b25', accent: '#d9822b', pattern: 'tortie', eye: '#f2b134', collar: '#5bb38a' },
+    'british-blue': { label: 'บริติชบลู', base: '#7d8a99', accent: '#64707e', pattern: 'solid', eye: '#e8952e', collar: '#f9c1cc' },
+    'chocolate': { label: 'ช็อกโกแลต', base: '#6b4130', accent: '#4f2e21', pattern: 'solid', eye: '#e8b04a', collar: '#f2c14e' },
+    'lilac': { label: 'ไลแลค', base: '#c4b5b8', accent: '#a99a9d', pattern: 'solid', eye: '#8cc63f', collar: '#b98bd0' },
+    'golden-tabby': { label: 'ทองลายสลิด', base: '#e9b867', accent: '#b07a2e', pattern: 'tabby', eye: '#7cc36b', collar: '#e2768c' },
+    'brown-tabby': { label: 'น้ำตาลลายเสือ', base: '#9c7a5b', accent: '#4a3528', pattern: 'tabby', eye: '#c9d23c', collar: '#e05d4b' },
+    'flame-point': { label: 'แต้มส้ม', base: '#f8ecdc', accent: '#e0874a', pattern: 'points', eye: '#6aa6dc', collar: '#5bb38a' },
+    'chinchilla': { label: 'ชินชิลลา', base: '#d9dde2', accent: '#8f979f', pattern: 'shaded', eye: '#5bb38a', collar: '#e2768c' }
   };
-  var NAMES = ['ส้มโอ', 'มะลิ', 'ข้าวปั้น', 'ถั่วแดง', 'โมจิ', 'ทองดี', 'ลูกชิ้น', 'ขนมปัง', 'นมเย็น', 'มะขาม'];
+  var NAMES = ['ส้มโอ', 'มะลิ', 'ข้าวปั้น', 'ถั่วแดง', 'โมจิ', 'ทองดี', 'ลูกชิ้น', 'ขนมปัง', 'นมเย็น', 'มะขาม',
+    'ชาไทย', 'บัวลอย', 'ข้าวหอม', 'เต้าหู้', 'มะพร้าว', 'ทับทิม', 'ไข่ตุ๋น', 'ลำไย', 'ซูชิ', 'วุ้นเส้น'];
+  // Care rewards: days in a row the cat was kept well (health 80+, fed, watered, not sick), counted once a day
+  // when the page is open. Each step gives a title, and from 3 days a look the visitor can show off on a share card.
+  var TITLES = [
+    { min: 30, key: 'legend', label: 'แมวในตำนาน', stars: 5 },
+    { min: 14, key: 'crown', label: 'แมวสุขภาพดีเยี่ยม', stars: 4 },
+    { min: 7, key: 'shiny', label: 'แมวขนเงาวิ้ง', stars: 3 },
+    { min: 3, key: 'happy', label: 'แมวอารมณ์ดี', stars: 2 },
+    { min: 1, key: 'new', label: 'ลูกรักมือใหม่', stars: 1 }
+  ];
   // [command, label, colour tone] — tones are .tone-* in style.css
   var COMMANDS = [
     ['walk', 'เดินเล่น', 'mint'], ['zoom', 'วิ่งพล่าน', 'sun'], ['stay', 'นั่งนิ่งๆ', 'pink'], ['sleep', 'นอน', 'sky'],
@@ -103,6 +124,8 @@
     med: "<path d=\"m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z\" /><path d=\"m8.5 8.5 7 7\" />",
     sick: "<path d=\"M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z\" />",
     adopt: "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />",
+    crown: "<path d=\"M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z\" /><path d=\"M5 21h14\" />",
+    share: "<circle cx=\"18\" cy=\"5\" r=\"3\" /><circle cx=\"6\" cy=\"12\" r=\"3\" /><circle cx=\"18\" cy=\"19\" r=\"3\" /><line x1=\"8.59\" x2=\"15.42\" y1=\"13.51\" y2=\"17.49\" /><line x1=\"15.41\" x2=\"8.59\" y1=\"6.51\" y2=\"10.49\" />",
     paw: "<circle cx=\"11\" cy=\"4\" r=\"2\" /><circle cx=\"18\" cy=\"8\" r=\"2\" /><circle cx=\"20\" cy=\"16\" r=\"2\" /><path d=\"M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z\" />"
   };
 
@@ -163,11 +186,22 @@
       v['--cat-mid'] = accent;
       v['--cat-shade'] = '#ece0d0';
       v['--paw'] = '#fffaf3';
+    } else if (cfg.pattern === 'tortie') {
+      // Dark coat mottled with orange: the light areas carry the orange, the markings sit between the two.
+      v['--cat-light'] = accent;
+      v['--cat-mid'] = mix(base, accent, 0.45);
+      v['--paw'] = mix(base, accent, 0.3);
+    } else if (cfg.pattern === 'shaded') {
+      // Pale undercoat, darker tips on the back (chinchilla, silver shaded).
+      v['--cat-light'] = lighten(base, 0.65);
+      v['--cat-mid'] = accent;
+      v['--cat-shade'] = darken(base, 0.08);
+      v['--paw'] = lighten(base, 0.5);
     }
     // The silhouette poses (sl1-8) have no drawn pattern, so they switch on matching marking layers instead.
     v['--sl-stripes'] = cfg.pattern === 'tabby' ? 1 : 0;
     v['--sl-points'] = cfg.pattern === 'points' ? 1 : 0;
-    v['--sl-patches'] = cfg.pattern === 'calico' ? 1 : 0;
+    v['--sl-patches'] = cfg.pattern === 'calico' || cfg.pattern === 'tortie' ? 1 : 0;
     v['--sl-muzzle'] = cfg.pattern === 'points' ? 0 : 1;
     v['--cat-belly'] = cfg.pattern === 'calico' ? '#fffaf3' : v['--cat-light'];
     // Back highlight of the walk/run frames changes shape every frame, so keep it close to the coat colour or
@@ -248,8 +282,44 @@
       sickSince: Number(c.sickSince) || null,
       doses: c.doses | 0,                           // doses given in this illness
       lastDoseAt: Number(c.lastDoseAt) || null,
-      stats: { meals: stats.meals | 0, drinks: stats.drinks | 0, meds: stats.meds | 0 }
+      stats: { meals: stats.meals | 0, drinks: stats.drinks | 0, meds: stats.meds | 0 },
+      streak: c.streak | 0,                         // good days in a row (see TITLES)
+      best: Math.max(c.best | 0, c.streak | 0),
+      goodDay: /^\d{4}-\d\d-\d\d$/.test(c.goodDay || '') ? c.goodDay : ''
     };
+  }
+
+  function localDay(t) {
+    var d = new Date(t);
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  /** Good days in a row as of today: a run stops counting once a whole day was missed. */
+  function streakNow(care) {
+    if (!care || !care.goodDay) { return 0; }
+    var now = Date.now();
+    return care.goodDay === localDay(now) || care.goodDay === localDay(now - 86400000) ? care.streak : 0;
+  }
+  function titleFor(days) {
+    for (var i = 0; i < TITLES.length; i++) {
+      if (days >= TITLES[i].min) { return TITLES[i]; }
+    }
+    return null;
+  }
+  /** Count today as a good day if the cat is doing well; returns the title just reached, if any. */
+  function careStreak(care, now) {
+    if (care.health < 40 || care.sick === 2) {
+      care.streak = 0;
+      return null;
+    }
+    var today = localDay(now);
+    if (care.goodDay === today || care.health < 80 || care.food < CARE.low || care.water < CARE.low || care.sick) {
+      return null;
+    }
+    care.streak = care.goodDay === localDay(now - 86400000) ? care.streak + 1 : 1;
+    care.goodDay = today;
+    care.best = Math.max(care.best, care.streak);
+    var t = titleFor(care.streak);
+    return t && t.min === care.streak && t.min >= 3 ? t : null;
   }
 
   /** Repeatable 0-1 number for one cat in one hour, so a reload doesn't re-roll whether it fell ill. */
@@ -480,6 +550,8 @@
     pet.need.className = 'pet-need';
     pet.need.hidden = true;
     el.appendChild(pet.need);
+    pet.crown = h('span', { class: 'pet-crown', hidden: true }, [iconSvg('crown')]);
+    el.appendChild(pet.crown);
     el.addEventListener('click', function (e) {
       e.stopPropagation();
       openCatRadial(pet);
@@ -970,12 +1042,17 @@
     store.cats.forEach(function (cfg) {
       if (!cfg.care || cfg.care.diedAt) { return; }
       careAdvance(cfg, now, true);
+      var reached = careStreak(cfg.care, now);
+      if (reached) {
+        setTimeout(function () { celebrate(cfg, reached); }, 1500);
+      }
       var need = careNeed(cfg.care);
       anyNeed = anyNeed || !!need;
       var pet = pets[cfg.id];
       if (pet) {
         pet.el.classList.toggle('is-sick', !!cfg.care.sick);
         pet.el.classList.toggle('is-very-sick', cfg.care.sick === 2);
+        showLook(pet);
         pet.need.hidden = !need;
         if (need) {
           pet.need.textContent = '';
@@ -985,6 +1062,183 @@
       }
     });
     fabBtn.classList.toggle('has-need', anyNeed);
+  }
+
+  /** The reward look of a well-kept cat: hearts from 3 good days, a sparkle from 7, a crown from 14 (gold at 30). */
+  function showLook(pet) {
+    var t = pet.cfg.care && !pet.cfg.care.diedAt ? titleFor(streakNow(pet.cfg.care)) : null;
+    var stars = t ? t.stars : 0;
+    pet.el.classList.toggle('look-happy', stars >= 2);
+    pet.el.classList.toggle('look-shiny', stars >= 3);
+    pet.el.classList.toggle('look-legend', stars >= 5);
+    pet.crown.hidden = stars < 4 || !pet.need.hidden;
+  }
+
+  /** A new title: a card with the share button, so the moment is easy to show friends. */
+  function celebrate(cfg, title) {
+    if (!careCard.hidden) { return; }
+    careCard.textContent = '';
+    careCard.classList.add('is-celebrate');
+    careCard.appendChild(h('h3', {}, [iconSvg('crown'), document.createTextNode(cfg.name + 'ได้ฉายาใหม่!')]));
+    careCard.appendChild(h('p', { text: 'ดูแลดีติดต่อกัน ' + title.min + ' วัน ได้เป็น "' + title.label + '" แล้ว ' + '★'.repeat(title.stars)
+      + ' อวดเพื่อนใน LINE หรือ Facebook ได้เลย' }));
+    careCard.appendChild(h('div', { class: 'pet-care-actions' }, [
+      h('button', { type: 'button', class: 'btn btn-deal', text: 'แชร์การ์ดแมว', onclick: function () { closeCareCard(); shareCard(cfg); } }),
+      h('button', { type: 'button', class: 'btn btn-ghost', text: 'ไว้ก่อน', onclick: closeCareCard })
+    ]));
+    careCard.hidden = false;
+    save();
+  }
+
+  // ── Share card: a picture of the cat with its title, for LINE / Facebook ──
+  var CARD_W = 1080, CARD_H = 1350;  // 4:5, shows large in both feeds
+
+  function gameUrl() {
+    var nav = document.querySelector('.main-nav a[href$="/game"]');
+    return nav ? nav.href : location.origin + '/game';
+  }
+
+  /** The sitting cat in its own colours as an image (the sprite symbol drawn into a standalone SVG). */
+  function catImage(cfg) {
+    var sym = document.getElementById('cs1');
+    if (!sym) { return Promise.reject(new Error('sprite not loaded')); }
+    var vars = paint(cfg);
+    var style = Object.keys(vars).map(function (k) { return k + ':' + vars[k]; }).join(';');
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="88 6 164 144" width="820" height="720" style="' + style + '">'
+      + sym.innerHTML + '</svg>';
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = reject;
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    });
+  }
+
+  function roundRect(ctx, x, y, w, hgt, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + hgt, r);
+    ctx.arcTo(x + w, y + hgt, x, y + hgt, r);
+    ctx.arcTo(x, y + hgt, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  /** Draw the card and resolve with a PNG blob. */
+  function drawCard(cfg) {
+    var care = cfg.care;
+    var days = streakNow(care);
+    var title = titleFor(days) || { label: 'ลูกรักคนใหม่', stars: 0 };
+    var together = daysBetween(care.adoptedAt, Date.now());
+    var fonts = document.fonts ? Promise.all(['700 80px Mali', '600 40px Mali', '600 40px "IBM Plex Sans Thai Looped"']
+      .map(function (f) { return document.fonts.load(f, 'แมวก'); })).catch(function () {}) : Promise.resolve();
+    return Promise.all([catImage(cfg), fonts]).then(function (res) {
+      var img = res[0];
+      var cv = document.createElement('canvas');
+      cv.width = CARD_W;
+      cv.height = CARD_H;
+      var c = cv.getContext('2d');
+      var head = 'Mali, "IBM Plex Sans Thai Looped", sans-serif';
+      var body = '"IBM Plex Sans Thai Looped", Mali, sans-serif';
+      // Cream page with soft paw dots, like the site.
+      c.fillStyle = '#fff8ef';
+      c.fillRect(0, 0, CARD_W, CARD_H);
+      c.fillStyle = '#fbecd9';
+      for (var y = 30; y < CARD_H; y += 90) {
+        for (var x = (y / 90) % 2 ? 75 : 30; x < CARD_W; x += 90) {
+          c.beginPath(); c.arc(x, y, 9, 0, Math.PI * 2); c.fill();
+        }
+      }
+      c.textAlign = 'center';
+      c.fillStyle = '#b04a15';
+      c.font = '700 44px ' + head;
+      c.fillText('คัดมาเหมียว 🐾 เกมเลี้ยงแมว', CARD_W / 2, 92);
+      // White card with the cat.
+      roundRect(c, 70, 140, CARD_W - 140, 1060, 56);
+      c.fillStyle = '#ffffff';
+      c.shadowColor = 'rgba(59,42,36,.15)';
+      c.shadowBlur = 40;
+      c.shadowOffsetY = 16;
+      c.fill();
+      c.shadowColor = 'transparent';
+      if (title.stars >= 3) {   // a warm glow behind well-kept cats
+        var g = c.createRadialGradient(CARD_W / 2, 520, 60, CARD_W / 2, 520, 420);
+        g.addColorStop(0, title.stars >= 5 ? 'rgba(255,209,102,.55)' : 'rgba(249,193,204,.55)');
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        c.fillStyle = g;
+        c.fillRect(110, 170, CARD_W - 220, 700);
+      }
+      c.drawImage(img, (CARD_W - 760) / 2, 210, 760, 667);
+      if (title.stars >= 4) {   // the crown, drawn from the same Lucide outline as the on-page badge
+        c.save();
+        c.translate(CARD_W / 2 - 70, 170);
+        c.scale(6, 6);
+        c.fillStyle = title.stars >= 5 ? '#f2b134' : '#ffd166';
+        c.strokeStyle = '#b06a10';
+        c.lineWidth = 1.2;
+        var crown = new Path2D('M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z');
+        c.fill(crown);
+        c.stroke(crown);
+        c.restore();
+      }
+      c.fillStyle = '#3b2a24';
+      c.font = '700 96px ' + head;
+      c.fillText(cfg.name, CARD_W / 2, 960);
+      // Title pill and stars.
+      c.font = '700 48px ' + head;
+      var tw = c.measureText(title.label).width + 80;
+      roundRect(c, (CARD_W - tw) / 2, 995, tw, 76, 38);
+      c.fillStyle = '#b04a15';
+      c.fill();
+      c.fillStyle = '#ffffff';
+      c.fillText(title.label, CARD_W / 2, 1050);
+      c.font = '700 48px ' + body;
+      c.fillStyle = '#f2b134';
+      c.fillText('★★★★★'.slice(0, title.stars) + '☆☆☆☆☆'.slice(0, 5 - title.stars), CARD_W / 2, 1135);
+      c.fillStyle = '#76594d';
+      c.font = '600 36px ' + body;
+      c.fillText('อยู่ด้วยกัน ' + together + ' วัน · ดูแลดีติดกัน ' + days + ' วัน · สุขภาพ ' + Math.round(care.health) + '%', CARD_W / 2, 1180);
+      c.fillStyle = '#3b2a24';
+      c.font = '600 40px ' + body;
+      c.fillText('มาเลี้ยงแมวด้วยกัน เล่นฟรีบนเว็บ ไม่ต้องโหลดแอป', CARD_W / 2, 1265);
+      c.fillStyle = '#b04a15';
+      c.font = '700 40px ' + body;
+      c.fillText(gameUrl().replace(/^https?:\/\//, ''), CARD_W / 2, 1318);
+      return new Promise(function (resolve) { cv.toBlob(resolve, 'image/png'); });
+    });
+  }
+
+  function shareText(cfg) {
+    var t = titleFor(streakNow(cfg.care));
+    return 'น้อง' + cfg.name.replace(/^น้อง/, '') + (t ? ' ได้ฉายา "' + t.label + '"' : '') + ' อยู่ด้วยกันมา '
+      + daysBetween(cfg.care.adoptedAt, Date.now()) + ' วันแล้ว 🐱 มาเลี้ยงแมวด้วยกันนะ เล่นฟรีบนเว็บ ' + gameUrl();
+  }
+
+  /** Phones: the system share sheet with the picture (LINE, Facebook, …). Elsewhere: preview, save, share links. */
+  function shareCard(cfg) {
+    drawCard(cfg).then(function (blob) {
+      var file = new File([blob], 'cat-' + cfg.name + '.png', { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        return navigator.share({ files: [file], text: shareText(cfg) }).catch(function () {});
+      }
+      var url = URL.createObjectURL(blob);
+      careCard.textContent = '';
+      careCard.classList.add('is-share');
+      careCard.appendChild(h('h3', {}, [iconSvg('share'), document.createTextNode('การ์ดของ' + cfg.name)]));
+      careCard.appendChild(h('img', { class: 'pet-share-img', src: url, alt: 'การ์ดแมว ' + cfg.name }));
+      careCard.appendChild(h('p', { class: 'small', text: 'บันทึกรูปแล้วโพสต์ใน Facebook หรือส่งใน LINE ได้เลย' }));
+      careCard.appendChild(h('div', { class: 'pet-care-actions' }, [
+        h('a', { class: 'btn btn-deal', href: url, download: 'cat-' + cfg.name + '.png', text: 'บันทึกรูป' }),
+        h('a', { class: 'btn btn-line', href: 'https://line.me/R/share?text=' + encodeURIComponent(shareText(cfg)),
+          target: '_blank', rel: 'noopener', text: 'LINE' }),
+        h('a', { class: 'btn btn-fb', href: 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(gameUrl()),
+          target: '_blank', rel: 'noopener', text: 'Facebook' }),
+        h('button', { type: 'button', class: 'btn btn-ghost', text: 'ปิด', onclick: function () { URL.revokeObjectURL(url); closeCareCard(); } })
+      ]));
+      careCard.hidden = false;
+    }).catch(function () {
+      window.open('https://line.me/R/share?text=' + encodeURIComponent(shareText(cfg)), '_blank', 'noopener');
+    });
   }
 
   /** A short speech bubble over a cat ("อิ่มแล้วเหมียว"). */
@@ -1114,7 +1368,7 @@
   var careCard = h('div', { class: 'pet-care-card', role: 'dialog', 'aria-live': 'polite', hidden: true });
   function closeCareCard() {
     careCard.hidden = true;
-    careCard.classList.remove('is-warning');
+    careCard.classList.remove('is-warning', 'is-celebrate', 'is-share');
     careCard.textContent = '';
   }
   function askAdopt(pet) {
@@ -1183,14 +1437,6 @@
     return Math.max(1, Math.round((b - a) / 86400000));
   }
 
-  /** "แชร์แมวของฉัน": LINE's share link with the cat's name, days together and the game page, so friends come to play. */
-  function shareCatUrl(cfg) {
-    var nav = document.querySelector('.main-nav a[href$="/game"]');
-    var game = nav ? nav.href : location.origin + '/game';
-    var text = 'น้อง' + cfg.name.replace(/^น้อง/, '') + ' แมวของฉันอยู่ด้วยกันมา ' + daysBetween(cfg.care.adoptedAt, Date.now())
-      + ' วันแล้ว 🐱 มาเลี้ยงแมวด้วยกันนะ เล่นฟรีบนเว็บ ' + game;
-    return 'https://line.me/R/share?text=' + encodeURIComponent(text);
-  }
 
   /** A cat whose health ran out: it sits, grows little wings, floats up and fades. Then it moves to the memories. */
   function sayGoodbye(cfg) {
@@ -1473,6 +1719,8 @@
           h('div', { class: 'studio-cat-info' }, [
             h('div', { class: 'studio-cat-name', text: cfg.name }),
             h('div', { class: 'studio-cat-sub', text: (PRESETS[cfg.preset] ? PRESETS[cfg.preset].label : 'สีของฉันเอง') + ' · ' + PATTERNS[cfg.pattern] + ' · ' + MOODS[cfg.mood] }),
+            cfg.care && titleFor(streakNow(cfg.care)) ? h('div', { class: 'studio-cat-title', text: '★'.repeat(titleFor(streakNow(cfg.care)).stars)
+              + ' ' + titleFor(streakNow(cfg.care)).label + ' · ดูแลดีติดกัน ' + streakNow(cfg.care) + ' วัน' }) : null,
             cfg.care ? h('div', { class: 'studio-cat-care' }, [
               h('span', { class: 'studio-cat-sub', text: 'รับเลี้ยงแล้ว · ระดับ' }),
               levelPicker({ id: cfg.id, level: cfg.care.level }, function (key) {
@@ -1483,7 +1731,7 @@
             ]) : null
           ]),
           h('div', { class: 'studio-cat-actions' }, [
-            cfg.care ? h('a', { class: 'chip-btn line', href: shareCatUrl(cfg), target: '_blank', rel: 'noopener', text: 'แชร์ใน LINE' }) : null,
+            cfg.care && !cfg.care.diedAt ? h('button', { type: 'button', class: 'chip-btn line', text: 'แชร์การ์ดแมว', onclick: function () { shareCard(cfg); } }) : null,
             h('button', { type: 'button', class: 'chip-btn', text: 'แก้ไข', onclick: function () { editing = Object.assign({}, cfg); renderDrawer(); } }),
             h('button', { type: 'button', class: 'chip-btn danger', text: 'ลบ', onclick: function () {
               if (window.confirm('ลบ "' + cfg.name + '" ?')) {

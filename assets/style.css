@@ -690,3 +690,24 @@ img.photo { display: block; width: 100%; height: 100%; object-fit: cover; backgr
 .line-cta p { margin: 0; }
 .btn-line { background: #047a35; color: #fff; }  /* darker than LINE green so white text keeps 4.5:1 */
 .btn-line:hover { background: #036329; color: #fff; }
+
+/* Care rewards: hearts from 3 good days, sparkle from 7, crown from 14, golden glow at 30 */
+.pet-crown { position: absolute; left: 50%; top: -14px; width: 30px; height: 30px; margin-left: -15px; display: grid; place-items: center; color: #e0a020; pointer-events: none; }
+.pet-crown[hidden] { display: none; }
+.pet-crown .pet-icon { width: 24px; height: 24px; }
+.pet-crown svg { fill: #ffd166; }
+.look-legend .pet-crown svg { fill: #f2b134; }
+.look-shiny svg { filter: drop-shadow(0 0 6px rgba(255, 209, 102, .7)); }
+.look-legend svg { filter: drop-shadow(0 0 10px rgba(242, 177, 52, .9)); }
+.anim-on .look-happy::after { content: '♥'; position: absolute; left: 60%; top: 10%; color: #e2768c; font-size: 16px; opacity: 0; animation: pet-heart 4s ease-in-out infinite; pointer-events: none; }
+@keyframes pet-heart { 0%, 60% { opacity: 0; transform: translateY(0) scale(.6); } 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(-36px) scale(1.1); } }
+.studio-cat-title { font-size: .82rem; font-weight: 700; color: #b06a10; }
+.pet-care-card.is-celebrate { border-color: #ffd166; background: #fffaf0; }
+.pet-care-card.is-celebrate h3 .pet-icon { color: #e0a020; }
+.pet-care-card.is-share { width: min(380px, calc(100vw - 32px)); }
+.pet-share-img { display: block; width: 100%; border-radius: 14px; margin: 6px 0; box-shadow: var(--shadow); }
+.btn-fb { background: #1b4fa8; color: #fff; }
+.btn-fb:hover { background: #163f86; color: #fff; }
+@media (prefers-reduced-motion: reduce) { .look-happy::after { display: none; } }
+.pet-care-card.is-share .pet-care-actions { flex-wrap: wrap; gap: 6px; }
+.pet-care-card.is-share .pet-care-actions .btn { padding: 7px 12px; font-size: .85rem; white-space: nowrap; }

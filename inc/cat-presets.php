@@ -15,6 +15,16 @@ const CAT_PRESETS = [
     'calico'       => ['base' => '#f0974f', 'accent' => '#3a3433', 'pattern' => 'calico', 'eye' => '#f2b134', 'collar' => '#5bb38a'],
     'tuxedo'       => ['base' => '#2f2a2a', 'accent' => '#1f1b1b', 'pattern' => 'socks', 'eye' => '#9bd36a', 'collar' => '#e2768c'],
     'cream'        => ['base' => '#f1dcc0', 'accent' => '#d8b48a', 'pattern' => 'solid', 'eye' => '#e8a23b', 'collar' => '#6aa6dc'],
+    'ginger-white' => ['base' => '#f2a057', 'accent' => '#c8692a', 'pattern' => 'socks', 'eye' => '#8cc63f', 'collar' => '#6aa6dc'],
+    'grey-white'   => ['base' => '#8c949c', 'accent' => '#5d6874', 'pattern' => 'socks', 'eye' => '#f2b134', 'collar' => '#e2768c'],
+    'tortie'       => ['base' => '#3d2b25', 'accent' => '#d9822b', 'pattern' => 'tortie', 'eye' => '#f2b134', 'collar' => '#5bb38a'],
+    'british-blue' => ['base' => '#7d8a99', 'accent' => '#64707e', 'pattern' => 'solid', 'eye' => '#e8952e', 'collar' => '#f9c1cc'],
+    'chocolate'    => ['base' => '#6b4130', 'accent' => '#4f2e21', 'pattern' => 'solid', 'eye' => '#e8b04a', 'collar' => '#f2c14e'],
+    'lilac'        => ['base' => '#c4b5b8', 'accent' => '#a99a9d', 'pattern' => 'solid', 'eye' => '#8cc63f', 'collar' => '#b98bd0'],
+    'golden-tabby' => ['base' => '#e9b867', 'accent' => '#b07a2e', 'pattern' => 'tabby', 'eye' => '#7cc36b', 'collar' => '#e2768c'],
+    'brown-tabby'  => ['base' => '#9c7a5b', 'accent' => '#4a3528', 'pattern' => 'tabby', 'eye' => '#c9d23c', 'collar' => '#e05d4b'],
+    'flame-point'  => ['base' => '#f8ecdc', 'accent' => '#e0874a', 'pattern' => 'points', 'eye' => '#6aa6dc', 'collar' => '#5bb38a'],
+    'chinchilla'   => ['base' => '#d9dde2', 'accent' => '#8f979f', 'pattern' => 'shaded', 'eye' => '#5bb38a', 'collar' => '#e2768c'],
 ];
 
 function cat_hex_mix(string $a, string $b, float $t): string
@@ -53,6 +63,15 @@ function cat_paint_style(string $preset): string
         $v['--cat-mid'] = $c['accent'];
         $v['--cat-shade'] = '#ece0d0';
         $v['--paw'] = '#fffaf3';
+    } elseif ($c['pattern'] === 'tortie') {
+        $v['--cat-light'] = $c['accent'];
+        $v['--cat-mid'] = cat_hex_mix($base, $c['accent'], .45);
+        $v['--paw'] = cat_hex_mix($base, $c['accent'], .3);
+    } elseif ($c['pattern'] === 'shaded') {
+        $v['--cat-light'] = cat_hex_mix($base, '#ffffff', .65);
+        $v['--cat-mid'] = $c['accent'];
+        $v['--cat-shade'] = cat_hex_mix($base, '#000000', .08);
+        $v['--paw'] = cat_hex_mix($base, '#ffffff', .5);
     }
     $v['--eye'] = $c['eye'];
     $v['--collar'] = $c['collar'];
