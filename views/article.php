@@ -63,6 +63,8 @@ $jsonLd = [
     <p class="disclosure-inline">บทความนี้มีลิงก์ Affiliate — ถ้าซื้อผ่านลิงก์ เราอาจได้ค่าคอมมิชชันเล็กน้อย โดยคุณไม่ต้องจ่ายเพิ่ม</p>
   </header>
 
+  <?php require APP_ROOT . '/views/partials/promo-banners.php'; ?>
+
   <?php if (count($rendered['toc']) >= 3): ?>
   <nav class="toc" aria-label="สารบัญ">
     <strong>สารบัญ</strong>

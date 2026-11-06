@@ -89,3 +89,27 @@ CREATE TABLE IF NOT EXISTS news_items (
     fetched_at   TEXT    NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_news_published ON news_items (published_at);
+
+-- Promo banners (admin "แบนเนอร์โปร"): a campaign link shown on the home page and promo articles while it runs.
+CREATE TABLE IF NOT EXISTS promos (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    title         TEXT    NOT NULL,
+    subtitle      TEXT    NOT NULL DEFAULT '',
+    url           TEXT    NOT NULL,                -- Shopee/Lazada affiliate link
+    starts_at     TEXT    NOT NULL,
+    ends_at       TEXT    NOT NULL,
+    show_home     INTEGER NOT NULL DEFAULT 1,
+    show_articles INTEGER NOT NULL DEFAULT 1,
+    created_at    TEXT    NOT NULL,
+    updated_at    TEXT    NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_promos_time ON promos (starts_at, ends_at);
+
+CREATE TABLE IF NOT EXISTS promo_clicks (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    promo_id     INTEGER NOT NULL REFERENCES promos (id) ON DELETE CASCADE,
+    clicked_at   TEXT    NOT NULL,
+    visitor_hash TEXT    NOT NULL,                 -- salted daily hash, no raw IP stored
+    referer      TEXT    NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_promo_clicks_promo ON promo_clicks (promo_id, clicked_at);

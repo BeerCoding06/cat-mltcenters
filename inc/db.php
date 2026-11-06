@@ -1,6 +1,6 @@
 <?php
 
-const SCHEMA_VERSION = 7;
+const SCHEMA_VERSION = 8;
 
 /** Changes to tables that already exist; new tables just go in schema.sql. Keyed by the version they bring the DB to. */
 const MIGRATIONS = [
@@ -15,6 +15,7 @@ const MIGRATIONS = [
     7 => [
         'ALTER TABLE articles ADD COLUMN cover_credit TEXT',
     ],
+    // 8: promos + promo_clicks are new tables (schema.sql)
 ];
 
 function db(): PDO

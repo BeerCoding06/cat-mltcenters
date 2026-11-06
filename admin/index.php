@@ -88,6 +88,15 @@ switch ($action) {
         flash('ลบบทความแล้ว');
         admin_redirect('articles');
         break;
+    case 'promos':
+        action_promos();
+        break;
+    case 'promo_delete':
+        require_post();
+        db_run('DELETE FROM promos WHERE id = ?', [(int) $_POST['id']]);
+        flash('ลบแบนเนอร์แล้ว');
+        admin_redirect('promos');
+        break;
     case 'logout':
         require_post();
         $_SESSION = [];
@@ -676,6 +685,105 @@ function action_article_edit(): void
         </ul>
       </aside>
     </div>
+    <?php
+    admin_footer();
+}
+
+/** Promo banners: list with click counts, plus the add / edit form (?id=). */
+function action_promos(): void
+{
+    $id = isset($_GET['id']) ? (int) $_GET['id'] : null;
+    $promo = $id ? promo_get($id) : null;
+    if ($id && !$promo) {
+        flash('ไม่พบแบนเนอร์');
+        admin_redirect('promos');
+    }
+    $values = $promo ?: ['show_home' => 1, 'show_articles' => 1];
+    $errors = [];
+
+    if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+        require_post();
+        list($data, $errors) = promo_validate($_POST);
+        if (!$errors) {
+            promo_save($data, $id);
+            flash($id ? 'บันทึกแบนเนอร์แล้ว' : 'เพิ่มแบนเนอร์แล้ว');
+            admin_redirect('promos');
+        }
+        $values = array_merge($values, array_intersect_key($_POST, array_flip(PROMO_FIELDS)));
+        $values['show_home'] = empty($_POST['show_home']) ? 0 : 1;
+        $values['show_articles'] = empty($_POST['show_articles']) ? 0 : 1;
+    }
+
+    $since = date('Y-m-d H:i:s', strtotime('-7 days'));
+    $promos = db_all('SELECT p.*, (SELECT COUNT(*) FROM promo_clicks c WHERE c.promo_id = p.id) AS clicks,
+                             (SELECT COUNT(*) FROM promo_clicks c WHERE c.promo_id = p.id AND c.clicked_at >= ?) AS clicks_7d
+                      FROM promos p ORDER BY p.ends_at DESC', [$since]);
+    $v = function ($key) use ($values) {
+        return e($values[$key] ?? '');
+    };
+    $dt = function ($key) use ($values) {
+        return !empty($values[$key]) && ($t = promo_time((string) $values[$key])) !== '' ? e(date('Y-m-d\TH:i', strtotime($t))) : '';
+    };
+
+    admin_header('แบนเนอร์โปร');
+    ?>
+    <div class="toolbar"><h1>แบนเนอร์โปร</h1></div>
+    <div class="panel table-wrap">
+      <table class="table">
+        <thead><tr><th>แคมเปญ</th><th>ช่วงเวลา</th><th>สถานะ</th><th>แสดงที่</th><th>คลิก (7 วัน / ทั้งหมด)</th><th></th></tr></thead>
+        <tbody>
+        <?php foreach ($promos as $p): ?>
+          <tr>
+            <td><a href="<?= e(admin_url('promos', ['id' => $p['id']])) ?>"><?= e($p['title']) ?></a></td>
+            <td><?= e(date('j/n/Y H:i', strtotime($p['starts_at']))) ?> – <?= e(date('j/n/Y H:i', strtotime($p['ends_at']))) ?></td>
+            <td><?php if (promo_is_live($p)): ?><span class="pill pill-on">กำลังแสดง</span>
+                <?php elseif ($p['starts_at'] > now()): ?><span class="pill">รอเริ่ม</span>
+                <?php else: ?><span class="pill">หมดเวลา</span><?php endif; ?></td>
+            <td><?= implode(' · ', array_filter([$p['show_home'] ? 'หน้าแรก' : '', $p['show_articles'] ? 'บทความโปร' : ''])) ?: '–' ?></td>
+            <td><?= number_format((int) $p['clicks_7d']) ?> / <?= number_format((int) $p['clicks']) ?></td>
+            <td class="actions">
+              <a href="<?= e($p['url']) ?>" target="_blank" rel="noopener noreferrer">ลิงก์ ↗</a>
+              <form method="post" action="<?= e(admin_url('promo_delete')) ?>" onsubmit="return confirm('ลบแบนเนอร์นี้? ยอดคลิกจะหายไปด้วย')"><?= csrf_field() ?>
+                <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
+                <button class="linklike danger">ลบ</button>
+              </form>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+        <?php if (!$promos): ?>
+          <tr><td colspan="6" class="muted">ยังไม่มีแบนเนอร์ — เพิ่มอันแรกด้านล่าง</td></tr>
+        <?php endif; ?>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="form"><?= $promo ? 'แก้ไข: ' . e($promo['title']) : 'เพิ่มแบนเนอร์' ?></h2>
+    <?php if ($errors): ?>
+      <ul class="error"><?php foreach ($errors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?></ul>
+    <?php endif; ?>
+    <form method="post" action="<?= e(admin_url('promos', $id ? ['id' => $id] : [])) ?>" class="panel form">
+      <?= csrf_field() ?>
+      <label>ชื่อแคมเปญ * <small>ข้อความใหญ่บนแบนเนอร์ เช่น "Shopee 11.11 ของใช้แมวลดสูงสุด"</small>
+        <input name="title" value="<?= $v('title') ?>" required maxlength="80">
+      </label>
+      <label>ข้อความรอง <small>ไม่บังคับ เช่น "โค้ดส่งฟรี + ลดเพิ่มเที่ยงคืน"</small>
+        <input name="subtitle" value="<?= $v('subtitle') ?>" maxlength="140">
+      </label>
+      <label>ลิงก์ Affiliate * <small>สร้างจาก Shopee Affiliate › ลิงก์ที่กำหนดเอง (เช่น https://s.shopee.co.th/…) เพื่อให้ได้ค่าคอม</small>
+        <input name="url" type="url" value="<?= $v('url') ?>" required placeholder="https://s.shopee.co.th/…">
+      </label>
+      <div class="form-grid">
+        <label>วันเริ่ม * <input name="starts_at" type="datetime-local" value="<?= $dt('starts_at') ?>" required></label>
+        <label>วันจบ * <small>เลยเวลานี้แบนเนอร์ซ่อนเอง</small><input name="ends_at" type="datetime-local" value="<?= $dt('ends_at') ?>" required></label>
+      </div>
+      <label class="check"><input type="checkbox" name="show_home" value="1"<?= !empty($values['show_home']) ? ' checked' : '' ?>> แสดงที่หน้าแรก (ใต้หัวเว็บ)</label>
+      <label class="check"><input type="checkbox" name="show_articles" value="1"<?= !empty($values['show_articles']) ? ' checked' : '' ?>> แสดงในบทความโปร (บทความที่ชื่อมี "โปร", "ลดราคา", 11.11, 12.12 …)</label>
+      <div class="form-actions">
+        <?php if ($promo): ?><a href="<?= e(admin_url('promos')) ?>">ยกเลิก</a><?php endif; ?>
+        <button class="btn btn-deal"><?= $promo ? 'บันทึก' : 'เพิ่มแบนเนอร์' ?></button>
+      </div>
+    </form>
+    <p class="muted small">แสดงพร้อมกันได้สูงสุด 3 แคมเปญ (เริ่มล่าสุดขึ้นก่อน) · นับคลิกเฉพาะคน ไม่นับบอท · ลิงก์ผ่าน /go/promo/… เหมือนลิงก์สินค้า</p>
     <?php
     admin_footer();
 }

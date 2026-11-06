@@ -89,6 +89,7 @@ function admin_header(string $title): void
         <a href="<?= e(admin_url('edit')) ?>">+ เพิ่มสินค้า</a>
         <a href="<?= e(admin_url('import')) ?>">นำเข้า CSV</a>
         <a href="<?= e(admin_url('articles')) ?>">บทความ</a>
+        <a href="<?= e(admin_url('promos')) ?>">แบนเนอร์โปร</a>
         <a href="<?= e(url()) ?>" target="_blank">ดูหน้าเว็บ ↗</a>
         <form method="post" action="<?= e(admin_url('logout')) ?>"><?= csrf_field() ?><button class="linklike">ออกจากระบบ</button></form>
       </nav>

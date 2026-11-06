@@ -607,3 +607,21 @@ img.photo { display: block; width: 100%; height: 100%; object-fit: cover; backgr
 .game-levels { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius-sm); overflow: hidden; }
 .game-levels th, .game-levels td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); }
 .game-levels th { background: var(--cream-deep); }
+
+/* Promo banners (admin "แบนเนอร์โปร"): home page under the hero, and in shopping-event articles */
+.promo-banners { display: grid; gap: 10px; margin: 18px 0; }
+.promo-banner { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: var(--radius); text-decoration: none; color: var(--text);
+  background: linear-gradient(110deg, var(--sun) 0%, var(--ginger) 55%, #f08a5d 100%); box-shadow: var(--shadow); transition: transform .15s, box-shadow .15s; }
+.promo-banner:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+.promo-banner-tag { display: inline-flex; align-items: center; gap: 4px; flex: none; padding: 4px 10px; border-radius: 999px;
+  background: var(--surface); color: var(--ginger-text); font-size: .8rem; font-weight: 700; }
+.promo-banner-tag svg { width: 14px; height: 14px; }
+.promo-banner-text { display: flex; flex-direction: column; min-width: 0; flex: 1; line-height: 1.35; }
+.promo-banner-text strong { font-family: var(--font-display); font-size: 1.15rem; }
+.promo-banner-text small { font-size: .82rem; opacity: .85; }
+.promo-banner-btn { flex: none; }
+@media (max-width: 600px) {
+  .promo-banner { flex-wrap: wrap; gap: 8px 12px; padding: 12px 14px; }
+  .promo-banner-text { flex-basis: 100%; order: 2; }
+  .promo-banner-btn { order: 3; width: 100%; }
+}

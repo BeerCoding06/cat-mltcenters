@@ -13,6 +13,7 @@ $GLOBALS['config'] = require APP_ROOT . '/config.php';
 require APP_ROOT . '/inc/helpers.php';
 require APP_ROOT . '/inc/db.php';
 require APP_ROOT . '/inc/products.php';
+require APP_ROOT . '/inc/promos.php';
 require APP_ROOT . '/inc/visits.php';
 require APP_ROOT . '/inc/photos.php';
 require APP_ROOT . '/inc/articles.php';

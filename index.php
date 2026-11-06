@@ -23,6 +23,8 @@ if ($path === '') {
     page_article($m[1], $_GET);
 } elseif (preg_match('#^go/(\d+)$#', $path, $m)) {
     page_go((int) $m[1]);
+} elseif (preg_match('#^go/promo/(\d+)$#', $path, $m)) {
+    page_go_promo((int) $m[1]);
 } elseif (preg_match('#^media/breeds/([^/]+\.(?:jpg|png|webp))$#u', $path, $m)) {
     page_media(BREED_PHOTO_DIR, $m[1]);
 } elseif ($path === 'sitemap.xml') {
@@ -91,6 +93,7 @@ function page_listing(array $q, $category = null): void
 
     render('listing', [
         'news'        => $isFrontPage ? news_latest(5) : [],
+        'promos'      => $isFrontPage ? promos_live('home') : [],
         // Thai breeds first on the front page
         'breeds'      => $isFrontPage ? db_all("SELECT * FROM breeds ORDER BY CASE WHEN origin LIKE '%ไทย%' THEN 0 ELSE 1 END, name_th LIMIT 4") : [],
         'topSellers'  => $isFrontPage
@@ -213,6 +216,7 @@ function page_article(string $slug, array $q): void
             ? db_all('SELECT ' . product_columns() . ' FROM products WHERE category = ? AND active = 1 ORDER BY discount DESC LIMIT 4', [$article['category']])
             : [],
         'more'      => articles_published(3, null, (int) $article['id']),
+        'promos'    => article_is_promo($article) ? promos_live('articles') : [],
     ]);
 }
 
@@ -227,6 +231,20 @@ function page_go(int $id): void
     header('X-Robots-Tag: noindex, nofollow');
     header('Cache-Control: no-store');
     header('Location: ' . $product['affiliate_url'], true, 302);
+}
+
+/** Promo banner click: count it, then on to the campaign's affiliate link (also after it ends, for cached pages). */
+function page_go_promo(int $id): void
+{
+    $promo = promo_get($id);
+    if (!$promo || !is_allowed_affiliate_url($promo['url'])) {
+        render('404', [], 404);
+        return;
+    }
+    log_promo_click($promo);
+    header('X-Robots-Tag: noindex, nofollow');
+    header('Cache-Control: no-store');
+    header('Location: ' . $promo['url'], true, 302);
 }
 
 /** Serve a downloaded photo from the data volume (data/ itself is not web-accessible). */

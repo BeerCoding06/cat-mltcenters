@@ -66,6 +66,8 @@ $canonical = abs_url($basePath) . ($page > 1 ? '?page=' . $page : '');
 </section>
 <?php endif; ?>
 
+<?php require APP_ROOT . '/views/partials/promo-banners.php'; ?>
+
 <?php if ($categories): ?>
 <nav class="chips" aria-label="หมวดหมู่">
   <a class="chip chip-all<?= $category === null ? ' active' : '' ?>" href="<?= e(url()) ?>">ทั้งหมด</a>

@@ -195,21 +195,22 @@ function log_click(array $product): void
     if (!is_human_request()) {
         return;
     }
-    $visitor = visitor_hash();
-
-    // Keep only where the click came from (host, or path for our own pages) — never full query strings.
-    $referer = '';
-    if (!empty($_SERVER['HTTP_REFERER'])) {
-        $parts = parse_url((string) $_SERVER['HTTP_REFERER']);
-        $host = $parts['host'] ?? '';
-        $ownHost = (string) parse_url('http://' . ($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST);
-        $referer = ($host === $ownHost) ? rawurldecode($parts['path'] ?? '/') : $host;
-    }
-
     db_run(
         'INSERT INTO clicks (product_id, clicked_at, visitor_hash, referer) VALUES (?, ?, ?, ?)',
-        [$product['id'], now(), $visitor, mb_substr($referer, 0, 200)]
+        [$product['id'], now(), visitor_hash(), click_referer()]
     );
+}
+
+/** Where a click came from (host, or path for our own pages) — never full query strings. */
+function click_referer(): string
+{
+    if (empty($_SERVER['HTTP_REFERER'])) {
+        return '';
+    }
+    $parts = parse_url((string) $_SERVER['HTTP_REFERER']);
+    $host = $parts['host'] ?? '';
+    $ownHost = (string) parse_url('http://' . ($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST);
+    return mb_substr(($host === $ownHost) ? rawurldecode($parts['path'] ?? '/') : $host, 0, 200);
 }
 
 /** Imports products from an open CSV handle. Updates rows that match an existing product. */
