@@ -42,8 +42,7 @@ function deals_by_category(int $perCategory = 3): array
             SELECT ' . product_columns() . ',
                    ROW_NUMBER() OVER (PARTITION BY category ORDER BY ' . discount_sql() . ' DESC, sold DESC) AS pick
             FROM products WHERE active = 1 AND category <> \'\'
-         ) WHERE pick <= ? ORDER BY category, pick',
-        [$perCategory]
+         ) WHERE pick <= ' . (int) $perCategory . ' ORDER BY category, pick'   // inline: a bound value arrives as text, and in SQLite every integer sorts below text
     );
     $out = [];
     foreach ($rows as $row) {
