@@ -21,6 +21,7 @@ require APP_ROOT . '/inc/shopee.php';
 require APP_ROOT . '/inc/illustrations.php';
 require APP_ROOT . '/inc/cat-presets.php';
 require APP_ROOT . '/inc/http.php';
+require APP_ROOT . '/inc/facebook.php';
 require APP_ROOT . '/inc/breeds.php';
 require APP_ROOT . '/inc/news.php';
 

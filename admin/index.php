@@ -88,6 +88,14 @@ switch ($action) {
         flash('ลบบทความแล้ว');
         admin_redirect('articles');
         break;
+    case 'facebook_now':
+        require_post();
+        $result = facebook_post_due();
+        $result['finished_at'] = now();
+        file_put_contents(facebook_status_file(), json_encode($result, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        flash($result['stopped'] ?: 'โพสต์ลงเพจแล้ว ' . count($result['posted']) . ' บทความ' . ($result['errors'] ? ' (ผิดพลาด ' . count($result['errors']) . ')' : ''));
+        admin_redirect();
+        break;
     case 'clicks':
         action_clicks();
         break;
@@ -189,6 +197,9 @@ function action_dashboard(): void
     $dataDir = dirname((string) config('db_path'));
     $lastBreeds = is_file($dataDir . '/last-breeds.json') ? json_decode((string) file_get_contents($dataDir . '/last-breeds.json'), true) : null;
     $lastNews = is_file($dataDir . '/last-news.json') ? json_decode((string) file_get_contents($dataDir . '/last-news.json'), true) : null;
+    $lastFacebook = is_file(facebook_status_file()) ? json_decode((string) file_get_contents(facebook_status_file()), true) : null;
+    $fbRecent = db_all('SELECT title, slug, fb_posted_at, fb_error FROM articles WHERE fb_posted_at IS NOT NULL OR fb_error IS NOT NULL
+                        ORDER BY COALESCE(fb_posted_at, published_at) DESC LIMIT 5');
     $breedCount = (int) db_value('SELECT COUNT(*) FROM breeds');
     $newsCount = (int) db_value('SELECT COUNT(*) FROM news_items');
 
@@ -229,6 +240,29 @@ function action_dashboard(): void
         <form method="post" action="<?= e(admin_url('fetch_news')) ?>"><?= csrf_field() ?><button class="btn btn-ghost">ดึงข่าวแมว</button></form>
         <form method="post" action="<?= e(admin_url('fetch_breeds')) ?>"><?= csrf_field() ?><button class="btn btn-ghost">ดึงข้อมูลสายพันธุ์</button></form>
       </div>
+    </section>
+
+    <section class="panel fetch-panel">
+      <div>
+        <h2>โพสต์บทความลงเพจ Facebook</h2>
+        <?php if (!facebook_configured()): ?>
+          <p class="muted">ยังไม่ได้ตั้งค่า — ใส่ Page Access Token ใน Dokploy › Environment เป็น <code>FB_PAGE_TOKEN</code> แล้ว deploy ใหม่
+             บทความที่ขึ้นเว็บหลังจากนั้นจะโพสต์ลงเพจเอง (เช็กทุก 10 นาที)</p>
+        <?php else: ?>
+          <p>เปิดใช้งานแล้ว · เช็กทุก 10 นาที<?= $lastFacebook ? ' · ล่าสุด ' . e($lastFacebook['finished_at']) : '' ?></p>
+          <?php if (!empty($lastFacebook['stopped'])): ?><p class="error"><?= e($lastFacebook['stopped']) ?></p><?php endif; ?>
+        <?php endif; ?>
+        <?php if ($fbRecent): ?>
+          <ul class="small">
+            <?php foreach ($fbRecent as $r): ?>
+              <li><?= e($r['title']) ?> — <?= $r['fb_posted_at'] ? 'โพสต์แล้ว ' . e($r['fb_posted_at']) : '<span class="error">' . e($r['fb_error']) . '</span>' ?></li>
+            <?php endforeach; ?>
+          </ul>
+        <?php endif; ?>
+      </div>
+      <?php if (facebook_configured()): ?>
+        <form method="post" action="<?= e(admin_url('facebook_now')) ?>"><?= csrf_field() ?><button class="btn btn-ghost">โพสต์ตอนนี้</button></form>
+      <?php endif; ?>
     </section>
 
     <div class="stat-row">

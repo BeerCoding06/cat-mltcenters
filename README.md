@@ -51,7 +51,7 @@ php bin/seed-demo.php      # (ไม่บังคับ) ใส่สินค
 ## Deploy ด้วย Dokploy (Docker)
 
 - Build Type: **Dockerfile**, Docker File: `Dockerfile.prod`, Context: `.`
-- Environment: `ADMIN_PASSWORD` (อย่างน้อย 10 ตัว), `SITE_URL` (เช่น `https://cat.mltcenters.com`) และเมื่อได้ API แล้ว `SHOPEE_APP_ID`, `SHOPEE_SECRET` (ไม่บังคับ: `THECATAPI_KEY`)
+- Environment: `ADMIN_PASSWORD` (อย่างน้อย 10 ตัว), `SITE_URL` (เช่น `https://cat.mltcenters.com`) และเมื่อได้ API แล้ว `SHOPEE_APP_ID`, `SHOPEE_SECRET` (ไม่บังคับ: `THECATAPI_KEY`, `FB_PAGE_TOKEN` = Page Access Token สิทธิ์ `pages_manage_posts` สำหรับโพสต์บทความใหม่ลงเพจอัตโนมัติทุก 10 นาที, `FB_PAGE_ID` ถ้าเปลี่ยนเพจ)
 - Advanced › Volumes: mount ถาวรที่ `/var/www/html/data` ไม่งั้นฐานข้อมูลหายทุกครั้งที่ deploy
 - Domains: ใส่โดเมน, Container Port `80`, เปิด HTTPS
 - งานอัตโนมัติ (Schedules): `php bin/fetch-news.php` ทุกวัน และ `php bin/fetch-breeds.php` สัปดาห์ละครั้ง

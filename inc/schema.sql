@@ -55,6 +55,9 @@ CREATE TABLE IF NOT EXISTS articles (
     excerpt      TEXT    NOT NULL DEFAULT '',    -- meta description / card summary
     cover_image  TEXT    NOT NULL DEFAULT '',
     cover_credit TEXT,                             -- JSON {author, source} for a stock photo
+    fb_post_id   TEXT,                             -- Facebook Page post, once shared (bin/post-facebook.php)
+    fb_posted_at TEXT,
+    fb_error     TEXT,
     body         TEXT    NOT NULL DEFAULT '',    -- simple Markdown + product shortcodes
     status       TEXT    NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
     published_at TEXT,

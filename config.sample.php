@@ -42,6 +42,16 @@ return [
         'endpoint' => 'https://open-api.affiliate.shopee.co.th/graphql',
     ],
 
+    // Facebook Page auto-posting (bin/post-facebook.php): every article that goes live is shared on the Page once.
+    // The token is a long-lived Page access token with pages_manage_posts — keep it out of git and chat.
+    'facebook' => [
+        'page_id'    => '',
+        'page_token' => '',
+        'graph_url'  => 'https://graph.facebook.com/v21.0',
+        'max_age_hours' => 24,   // only articles published within this window are posted (no backlog flood)
+        'per_run'       => 1,    // at most this many posts per run (every 10 minutes)
+    ],
+
     // Cat news (bin/fetch-news.php): RSS feeds; only headlines mentioning a keyword are kept, shown as links to the source.
     'news_feeds' => [
         ['name' => 'มติชน',           'url' => 'https://www.matichon.co.th/tag/%E0%B9%81%E0%B8%A1%E0%B8%A7/feed'],

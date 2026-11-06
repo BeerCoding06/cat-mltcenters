@@ -8,9 +8,15 @@ $secrets = is_file($secretsFile) ? require $secretsFile : [];
 $config['click_salt'] = (string) ($secrets['click_salt'] ?? '');
 $config['admin_password_hash'] = (string) ($secrets['admin_password_hash'] ?? '');
 
-$config['site_url'] = rtrim((string) getenv('SITE_URL'), '/');
+// Links built outside a web request (Facebook posts from the background job) need the public address.
+$config['site_url'] = rtrim((string) (getenv('SITE_URL') ?: 'https://cat.mltcenters.com'), '/');
 $config['shopee_api']['app_id'] = (string) getenv('SHOPEE_APP_ID');
 $config['shopee_api']['secret'] = (string) getenv('SHOPEE_SECRET');
 $config['thecatapi_key'] = (string) getenv('THECATAPI_KEY');
+$config['facebook']['page_id'] = (string) (getenv('FB_PAGE_ID') ?: '61596430704549');
+$config['facebook']['page_token'] = (string) getenv('FB_PAGE_TOKEN');
+if (getenv('FB_GRAPH_URL')) {
+    $config['facebook']['graph_url'] = rtrim((string) getenv('FB_GRAPH_URL'), '/');
+}
 
 return $config;
