@@ -29,7 +29,9 @@ $jsonLd = [
   <div class="game-cta">
     <button type="button" class="btn btn-deal" id="game-play">เริ่มเลี้ยงแมวเลย</button>
     <a class="btn btn-ghost" href="#how-to-play">ดูวิธีเล่น</a>
+    <a class="btn btn-line" href="https://line.me/R/share?text=<?= e(rawurlencode('มาเลี้ยงแมวด้วยกันนะ 🐱 เกมเลี้ยงแมวเล่นฟรีบนเว็บ ไม่ต้องโหลดแอป ' . $canonical)) ?>" target="_blank" rel="noopener">ชวนเพื่อนใน LINE</a>
   </div>
+  <p class="game-note">รับเลี้ยงแล้ว กดปุ่มแมว 🐾 มุมจอ แล้วกด "แชร์ใน LINE" เพื่ออวดแมวของคุณให้เพื่อนดู</p>
   <p class="game-note">ไม่ต้องสมัคร ไม่ต้องโหลดแอป ข้อมูลเก็บในเบราว์เซอร์ของคุณเอง</p>
 </section>
 

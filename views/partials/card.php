@@ -22,6 +22,12 @@
         <s class="price-old"><?= e(baht($p['original_price'])) ?></s>
       <?php endif; ?>
     </div>
+    <?php $sum = $summaries[(int) $p['id']] ?? null; // pages that pass price_summaries() show the 30-day low ?>
+    <?php if ($sum && $sum['is_lowest']): ?>
+      <p class="card-low card-low-best">ราคาต่ำสุดใน 30 วัน</p>
+    <?php elseif ($sum && $sum['min'] < (float) $p['price'] - 0.009): ?>
+      <p class="card-low">ต่ำสุดใน 30 วัน <?= e(baht($sum['min'])) ?></p>
+    <?php endif; ?>
     <div class="meta">
       <?php if ((float) $p['rating'] > 0): ?><span>★ <?= e(number_format((float) $p['rating'], 1)) ?></span><?php endif; ?>
       <?php if ((int) $p['sold'] > 0): ?><span>ขายแล้ว <?= e(number_format((int) $p['sold'])) ?></span><?php endif; ?>

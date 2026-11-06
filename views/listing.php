@@ -73,6 +73,15 @@ $canonical = abs_url($basePath) . ($page > 1 ? '?page=' . $page : '');
 <?php require APP_ROOT . '/views/partials/promo-banners.php'; ?>
 
 <?php if (!empty($topCats)): ?>
+<?php $campaign = campaign_next(); ?>
+<nav class="deal-strips" aria-label="ดีลพิเศษ">
+  <a class="campaign-strip" href="<?= e(url('deals')) ?>">🔥 ดีลแมวประจำสัปดาห์ →</a>
+  <?php if ($campaign): ?>
+    <a class="campaign-strip" href="<?= e(campaign_link($campaign)) ?>">
+      <?= $campaign['state'] === 'live' ? 'วันนี้' : 'อีก ' . (int) $campaign['days_left'] . ' วัน' ?> โปร <?= e($campaign['name']) ?> · ควรตุนอะไร →
+    </a>
+  <?php endif; ?>
+</nav>
 <nav class="top-links" aria-label="อันดับขายดีแต่ละหมวด">
   <span>🏆 อันดับขายดี:</span>
   <?php foreach ($topCats as $c): ?>

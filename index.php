@@ -37,6 +37,10 @@ if ($path === '') {
     render('about');
 } elseif ($path === 'game') {
     render('game', ['articles' => articles_published(3)]);
+} elseif ($path === 'deals') {
+    page_deals();
+} elseif (preg_match('#^sale/([\d-]+)$#', $path, $m)) {
+    page_campaign($m[1]);
 } else {
     render('404', [], 404);
 }
@@ -165,6 +169,42 @@ function page_top(string $category): void
     ]);
 }
 
+function page_deals(): void
+{
+    $drops = deals_price_drops();
+    $byCategory = deals_by_category();
+    render('deals', [
+        'week'       => deals_week_range(),
+        'drops'      => $drops,
+        'byCategory' => $byCategory,
+        'summaries'  => price_summaries(array_merge($drops, ...array_values($byCategory))),
+        'campaign'   => campaign_next(),
+        'articles'   => articles_published(3),
+    ]);
+}
+
+function page_campaign(string $slug): void
+{
+    $campaign = campaign_get($slug);
+    if (!$campaign) {
+        render('404', [], 404);
+        return;
+    }
+    $byCategory = deals_by_category(4);
+    $articles = [];
+    // Shopping-event articles first, then the latest ones; each once.
+    foreach (array_merge(array_filter(articles_published(30), 'article_is_promo'), articles_published(6)) as $a) {
+        $articles[$a['id']] = $a;
+    }
+    render('campaign', [
+        'campaign'   => $campaign,
+        'promos'     => promos_live('home'),
+        'byCategory' => $byCategory,
+        'summaries'  => price_summaries(array_merge(...array_values($byCategory))),
+        'articles'   => array_slice(array_values($articles), 0, 3),
+    ]);
+}
+
 function page_breeds(): void
 {
     render('breeds', ['breeds' => breeds_all()]);
@@ -287,7 +327,10 @@ function page_sitemap(): void
     header('Content-Type: application/xml; charset=utf-8');
     $urls = [['loc' => abs_url(''), 'lastmod' => null], ['loc' => abs_url('blog'), 'lastmod' => null],
              ['loc' => abs_url('breeds'), 'lastmod' => null], ['loc' => abs_url('news'), 'lastmod' => null],
-             ['loc' => abs_url('game'), 'lastmod' => null]];
+             ['loc' => abs_url('game'), 'lastmod' => null], ['loc' => abs_url('deals'), 'lastmod' => date('Y-m-d')]];
+    foreach (array_keys(CAMPAIGNS) as $slug) {
+        $urls[] = ['loc' => abs_url('sale/' . $slug), 'lastmod' => null];
+    }
     foreach (db_all('SELECT slug, fetched_at FROM breeds ORDER BY name_th') as $row) {
         $urls[] = ['loc' => abs_url('breed/' . rawurlencode($row['slug'])), 'lastmod' => substr($row['fetched_at'], 0, 10)];
     }

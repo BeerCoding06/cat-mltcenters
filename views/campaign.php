@@ -1,0 +1,76 @@
+<?php
+/**
+ * @var array $campaign    campaign_get()
+ * @var array $promos      running promo banners
+ * @var array $byCategory  category => biggest discounts
+ * @var array $summaries   product id => price_summary()
+ * @var array $articles
+ */
+$name = $campaign['name'];
+$year = $campaign['year'];
+$dateText = thai_date($campaign['date']);
+$title = 'โปร ' . $name . ' ' . $year . ' ของใช้แมว ควรตุนอะไร? รวมดีลอาหารแมว ทรายแมว';
+$description = 'รวมดีลของใช้แมวช่วงโปร ' . $name . ' (' . $dateText . ') อาหารแมว ทรายแมว ขนมแมว จาก ' . platforms_label()
+    . ' พร้อมราคาต่ำสุด 30 วันให้เช็กก่อนกดซื้อ';
+$canonical = abs_url('sale/' . $campaign['slug']);
+if ($campaign['state'] === 'upcoming') {
+    $status = 'อีก ' . (int) $campaign['days_left'] . ' วันถึงโปร ' . $name . ' (' . $dateText . ')';
+} elseif ($campaign['state'] === 'live') {
+    $status = 'วันนี้โปร ' . $name . ' แล้ว!';
+} else {
+    $status = 'โปร ' . $name . ' ปีนี้จบแล้ว ดีลด้านล่างยังอัปเดตราคาทุกวัน';
+}
+?>
+<section class="page-head campaign-head">
+  <nav class="crumbs"><a href="<?= e(url()) ?>">หน้าแรก</a> › โปร <?= e($name) ?></nav>
+  <h1>โปร <?= e($name) ?> <?= e((string) $year) ?> ของใช้แมว ควรตุนอะไร?</h1>
+  <p class="campaign-status"><?= e($status) ?></p>
+  <p class="lead">รวมดีลของแมวที่ลดเยอะสุดแต่ละหมวด พร้อมราคาต่ำสุดใน 30 วันจากประวัติราคาที่เราเก็บไว้ ใช้เช็กว่าลดจริงก่อนกดซื้อ</p>
+</section>
+
+<?php require APP_ROOT . '/views/partials/promo-banners.php'; ?>
+
+<section class="section campaign-tips">
+  <h2>เตรียมตัวก่อน <?= e($name) ?></h2>
+  <ol>
+    <li><strong>ใส่ของลงตะกร้าไว้ก่อน</strong> ของที่ใช้ประจำอย่างอาหารและทราย จะได้กดจ่ายทันทีตอนโปรเริ่ม</li>
+    <li><strong>เก็บโค้ดส่วนลดล่วงหน้า</strong> ทั้งโค้ดร้านและโค้ดแพลตฟอร์ม บางโค้ดมีจำนวนจำกัด</li>
+    <li><strong>เช็กราคาย้อนหลัง</strong> กดเข้าหน้าสินค้าบนเว็บเราเพื่อดูกราฟราคา ถ้าราคาวันโปรไม่ต่ำกว่าปกติ รอรอบหน้าก็ได้</li>
+    <li><strong>ตุนพอดีใช้</strong> อาหารเม็ดเปิดถุงแล้วควรใช้ให้หมดใน 4–6 สัปดาห์ ซื้อเกินอาจเหม็นหืน</li>
+  </ol>
+</section>
+
+<?php foreach ($byCategory as $category => $products): ?>
+  <section class="section">
+    <div class="section-head">
+      <h2 class="with-icon"><?= svg_category_icon($category) ?><?= e($category) ?></h2>
+      <a href="<?= e(category_link($category)) ?>">ดูทั้งหมด</a>
+    </div>
+    <div class="grid">
+      <?php foreach ($products as $p): ?>
+        <?php require APP_ROOT . '/views/partials/card.php'; ?>
+      <?php endforeach; ?>
+    </div>
+  </section>
+<?php endforeach; ?>
+
+<p class="top-note">ราคาบนหน้านี้คือราคาที่เราบันทึกล่าสุด ส่วนลดวันโปรจริงขึ้นกับร้านและโค้ด กด "ดูดีล" เพื่อเช็กราคาบนร้าน
+  · <a href="<?= e(url('deals')) ?>">ดูดีลประจำสัปดาห์</a></p>
+
+<?php if (config('line_oa_url')): ?>
+  <section class="line-cta">
+    <p><strong>อยากได้ดีลเด็ดวัน <?= e($name) ?>?</strong> เพิ่มเพื่อน LINE เราส่งสรุปให้ในวันโปร</p>
+    <a class="btn btn-line" href="<?= e((string) config('line_oa_url')) ?>" rel="noopener" target="_blank">เพิ่มเพื่อนใน LINE</a>
+  </section>
+<?php endif; ?>
+
+<?php if ($articles): ?>
+  <section class="section">
+    <div class="section-head"><h2>อ่านก่อนตุนของ</h2><a href="<?= e(url('blog')) ?>">ดูทั้งหมด</a></div>
+    <div class="article-grid">
+      <?php foreach ($articles as $a): ?>
+        <?php require APP_ROOT . '/views/partials/article-card.php'; ?>
+      <?php endforeach; ?>
+    </div>
+  </section>
+<?php endif; ?>

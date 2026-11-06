@@ -3,6 +3,8 @@
 /** Defaults for settings that config.php may leave out. */
 const CONFIG_DEFAULTS = [
     'facebook_url' => 'https://www.facebook.com/profile.php?id=61596430704549',
+    // LINE Official Account add-friend link (https://lin.ee/…); the "รับดีลทาง LINE" buttons show only once it is set.
+    'line_oa_url'  => '',
 ];
 
 function config(string $key, $default = null)

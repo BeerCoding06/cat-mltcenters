@@ -1183,6 +1183,15 @@
     return Math.max(1, Math.round((b - a) / 86400000));
   }
 
+  /** "แชร์แมวของฉัน": LINE's share link with the cat's name, days together and the game page, so friends come to play. */
+  function shareCatUrl(cfg) {
+    var nav = document.querySelector('.main-nav a[href$="/game"]');
+    var game = nav ? nav.href : location.origin + '/game';
+    var text = 'น้อง' + cfg.name.replace(/^น้อง/, '') + ' แมวของฉันอยู่ด้วยกันมา ' + daysBetween(cfg.care.adoptedAt, Date.now())
+      + ' วันแล้ว 🐱 มาเลี้ยงแมวด้วยกันนะ เล่นฟรีบนเว็บ ' + game;
+    return 'https://line.me/R/share?text=' + encodeURIComponent(text);
+  }
+
   /** A cat whose health ran out: it sits, grows little wings, floats up and fades. Then it moves to the memories. */
   function sayGoodbye(cfg) {
     var pet = pets[cfg.id] || spawn(cfg);
@@ -1474,6 +1483,7 @@
             ]) : null
           ]),
           h('div', { class: 'studio-cat-actions' }, [
+            cfg.care ? h('a', { class: 'chip-btn line', href: shareCatUrl(cfg), target: '_blank', rel: 'noopener', text: 'แชร์ใน LINE' }) : null,
             h('button', { type: 'button', class: 'chip-btn', text: 'แก้ไข', onclick: function () { editing = Object.assign({}, cfg); renderDrawer(); } }),
             h('button', { type: 'button', class: 'chip-btn danger', text: 'ลบ', onclick: function () {
               if (window.confirm('ลบ "' + cfg.name + '" ?')) {

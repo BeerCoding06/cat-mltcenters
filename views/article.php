@@ -83,7 +83,7 @@ $jsonLd = [
   <?php if (count($mentioned) >= 2): ?>
   <section class="deal-box" aria-labelledby="deal-box-title">
     <h2 id="deal-box-title">สรุปสินค้าในบทความนี้</h2>
-    <p class="deal-box-note">รวมของที่พูดถึงไว้ที่เดียว ราคาอัปเดตอัตโนมัติ กดดูดีลเพื่อเช็กราคาล่าสุดบนร้าน</p>
+    <p class="deal-box-note">รวมของที่พูดถึงไว้ที่เดียว ราคาอัปเดตอัตโนมัติพร้อมช่วงราคา 30 วันจากที่เราบันทึกไว้ กดดูดีลเพื่อเช็กราคาล่าสุดบนร้าน</p>
     <ol class="deal-box-list">
       <?php foreach ($mentioned as $p): ?>
         <li>
@@ -91,7 +91,13 @@ $jsonLd = [
             <?php if ($p['image_url'] !== ''): ?><img src="<?= e(image_thumb($p['image_url'])) ?>" alt="" width="64" height="64" loading="lazy" referrerpolicy="no-referrer"><?php endif; ?>
           </a>
           <span class="deal-box-name"><a href="<?= e(product_link($p)) ?>"><?= e($p['name']) ?></a>
-            <span class="deal-box-price"><?= e(baht($p['price'])) ?><?php if ((int) $p['discount'] > 0): ?> <small>-<?= (int) $p['discount'] ?>%</small><?php endif; ?></span></span>
+            <span class="deal-box-price"><?= e(baht($p['price'])) ?><?php if ((int) $p['discount'] > 0): ?> <small>-<?= (int) $p['discount'] ?>%</small><?php endif; ?></span>
+            <?php $sum = price_summary($p); ?>
+            <?php if ($sum['is_lowest']): ?>
+              <span class="deal-box-low best">ราคาต่ำสุดใน 30 วัน</span>
+            <?php elseif ($sum['max'] > $sum['min'] + 0.009): ?>
+              <span class="deal-box-low">30 วันที่ผ่านมา <?= e(baht($sum['min'])) ?>–<?= e(baht($sum['max'])) ?></span>
+            <?php endif; ?></span>
           <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูดีล</a>
         </li>
       <?php endforeach; ?>

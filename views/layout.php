@@ -47,6 +47,7 @@ $shareImage = !empty($ogImage) ? $ogImage : abs_url('assets/og-default.jpg');
       <a class="logo" href="<?= e(url()) ?>"><span class="logo-mark"><?= svg_logo() ?></span><?= e($siteName) ?></a>
       <nav class="main-nav">
         <a href="<?= e(url()) ?>">ดีลวันนี้</a>
+        <a href="<?= e(url('deals')) ?>">ดีลสัปดาห์</a>
         <a href="<?= e(url('breeds')) ?>">สายพันธุ์</a>
         <a href="<?= e(url('news')) ?>">ข่าวแมว</a>
         <a href="<?= e(url('blog')) ?>">บทความ</a>
@@ -75,6 +76,7 @@ $shareImage = !empty($ogImage) ? $ogImage : abs_url('assets/og-default.jpg');
         <a href="<?= e(url('about')) ?>">เกี่ยวกับเรา</a> ·
         <a href="<?= e(url('sitemap.xml')) ?>">แผนผังเว็บไซต์</a> ·
         <a href="<?= e((string) config('facebook_url')) ?>" rel="noopener me" target="_blank">เพจ Facebook</a> ·
+        <?php if (config('line_oa_url')): ?><a href="<?= e((string) config('line_oa_url')) ?>" rel="noopener" target="_blank">รับดีลทาง LINE</a> ·<?php endif; ?>
         © <?= date('Y') ?> <?= e($siteName) ?>
       </p>
       <p class="credits">ภาพประกอบแมว: <a href="https://www.freepik.com" rel="nofollow noopener" target="_blank">Freepik</a> ·
