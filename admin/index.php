@@ -88,6 +88,9 @@ switch ($action) {
         flash('ลบบทความแล้ว');
         admin_redirect('articles');
         break;
+    case 'clicks':
+        action_clicks();
+        break;
     case 'promos':
         action_promos();
         break;
@@ -784,6 +787,163 @@ function action_promos(): void
       </div>
     </form>
     <p class="muted small">แสดงพร้อมกันได้สูงสุด 3 แคมเปญ (เริ่มล่าสุดขึ้นก่อน) · นับคลิกเฉพาะคน ไม่นับบอท · ลิงก์ผ่าน /go/promo/… เหมือนลิงก์สินค้า</p>
+    <?php
+    admin_footer();
+}
+
+/** Which kind of page a click came from, for the click report. Referers are paths for our own pages, hosts otherwise. */
+function click_source_type(string $referer): string
+{
+    $base = url();
+    $path = strpos($referer, $base) === 0 ? '/' . ltrim(substr($referer, strlen($base)), '/') : $referer;
+    if ($referer === '') {
+        return 'ไม่ทราบ';
+    }
+    if ($referer[0] !== '/') {
+        return 'เว็บอื่น';
+    }
+    $types = ['/a/' => 'บทความ', '/p/' => 'หน้าสินค้า', '/c/' => 'หน้าหมวด', '/top/' => 'หน้าจัดอันดับ', '/breed' => 'สายพันธุ์',
+              '/game' => 'หน้าเกม', '/blog' => 'หน้ารวมบทความ', '/news' => 'ข่าวแมว'];
+    foreach ($types as $prefix => $label) {
+        if (strpos($path, $prefix) === 0) {
+            return $label;
+        }
+    }
+    return $path === '/' ? 'หน้าแรก' : 'อื่นๆ';
+}
+
+/** Click report: where buyers click from, which articles earn clicks, which products and banners get them. */
+function action_clicks(): void
+{
+    $days = (int) ($_GET['days'] ?? 30);
+    $days = in_array($days, [7, 30, 90], true) ? $days : 30;
+    $since = date('Y-m-d 00:00:00', strtotime('-' . ($days - 1) . ' days'));
+
+    $all = db_all("SELECT referer, 'product' AS kind FROM clicks WHERE clicked_at >= ?
+                   UNION ALL SELECT referer, 'promo' FROM promo_clicks WHERE clicked_at >= ?", [$since, $since]);
+    $byType = [];
+    foreach ($all as $row) {
+        $type = click_source_type($row['referer']);
+        $byType[$type] = ($byType[$type] ?? 0) + 1;
+    }
+    arsort($byType);
+    $total = count($all);
+    $promoTotal = count(array_filter($all, function ($r) { return $r['kind'] === 'promo'; }));
+    $visitors = (int) db_value('SELECT COUNT(DISTINCT visitor_hash) FROM (SELECT visitor_hash FROM clicks WHERE clicked_at >= ?
+                                UNION ALL SELECT visitor_hash FROM promo_clicks WHERE clicked_at >= ?)', [$since, $since]);
+
+    // Articles: clicks counted by the article page they came from; live articles with no clicks show at the bottom.
+    $articleClicks = [];
+    foreach ($all as $row) {
+        if (preg_match('#/a/([^/?]+)#u', $row['referer'], $m)) {
+            $articleClicks[$m[1]] = ($articleClicks[$m[1]] ?? 0) + 1;
+        }
+    }
+    $articles = db_all('SELECT title, slug, category, published_at FROM articles WHERE ' . ARTICLE_LIVE_SQL, [now()]);
+    foreach ($articles as &$a) {
+        $a['clicks'] = $articleClicks[$a['slug']] ?? 0;
+    }
+    unset($a);
+    usort($articles, function ($x, $y) { return $y['clicks'] <=> $x['clicks'] ?: strcmp((string) $y['published_at'], (string) $x['published_at']); });
+
+    $products = db_all('SELECT p.id, p.name, p.slug, p.category, COUNT(c.id) AS clicks, COUNT(DISTINCT c.visitor_hash) AS people
+                          FROM clicks c JOIN products p ON p.id = c.product_id WHERE c.clicked_at >= ?
+                         GROUP BY p.id ORDER BY clicks DESC LIMIT 20', [$since]);
+    $categories = db_all("SELECT CASE WHEN p.category = '' THEN '(ไม่มีหมวด)' ELSE p.category END AS category, COUNT(c.id) AS clicks
+                            FROM clicks c JOIN products p ON p.id = c.product_id WHERE c.clicked_at >= ?
+                           GROUP BY 1 ORDER BY clicks DESC", [$since]);
+    $promos = db_all('SELECT p.id, p.title, COUNT(c.id) AS clicks FROM promo_clicks c JOIN promos p ON p.id = c.promo_id
+                       WHERE c.clicked_at >= ? GROUP BY p.id ORDER BY clicks DESC', [$since]);
+    $bar = function ($n, $max) {
+        return '<span class="report-bar"><i style="width:' . ($max > 0 ? round($n / $max * 100) : 0) . '%"></i></span>';
+    };
+
+    admin_header('รายงานคลิก');
+    ?>
+    <div class="toolbar">
+      <h1>รายงานคลิก</h1>
+      <nav class="report-range" style="margin-left:auto">
+        <?php foreach ([7, 30, 90] as $d): ?>
+          <a class="btn <?= $d === $days ? 'btn-deal' : 'btn-ghost' ?>" href="<?= e(admin_url('clicks', ['days' => $d])) ?>"><?= $d ?> วัน</a>
+        <?php endforeach; ?>
+      </nav>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><span class="stat-label">คลิกไปร้านค้า</span><strong class="stat-value"><?= number_format($total) ?></strong>
+        <span class="stat-sub">สินค้า <?= number_format($total - $promoTotal) ?> · แบนเนอร์ <?= number_format($promoTotal) ?></span></div>
+      <div class="stat"><span class="stat-label">คนที่กด</span><strong class="stat-value"><?= number_format($visitors) ?></strong>
+        <span class="stat-sub">นับคนซ้ำได้ถ้ากดคนละวัน</span></div>
+      <div class="stat"><span class="stat-label">บทความที่มีคนกด</span><strong class="stat-value"><?= count(array_filter($articles, function ($a) { return $a['clicks'] > 0; })) ?> / <?= count($articles) ?></strong>
+        <span class="stat-sub">บทความที่เผยแพร่แล้ว</span></div>
+    </div>
+
+    <div class="report-grid">
+      <section class="panel">
+        <h2>คลิกมาจากหน้าแบบไหน</h2>
+        <table class="table">
+          <?php $max = $byType ? max($byType) : 0; ?>
+          <?php foreach ($byType as $type => $n): ?>
+            <tr><td><?= e($type) ?></td><td class="report-cell"><?= $bar($n, $max) ?></td><td class="num"><?= number_format($n) ?></td></tr>
+          <?php endforeach; ?>
+          <?php if (!$byType): ?><tr><td class="muted">ยังไม่มีคลิกในช่วงนี้</td></tr><?php endif; ?>
+        </table>
+      </section>
+      <section class="panel">
+        <h2>หมวดสินค้าที่ถูกกด</h2>
+        <table class="table">
+          <?php $max = $categories ? (int) $categories[0]['clicks'] : 0; ?>
+          <?php foreach ($categories as $c): ?>
+            <tr><td><?= e($c['category']) ?></td><td class="report-cell"><?= $bar((int) $c['clicks'], $max) ?></td><td class="num"><?= number_format((int) $c['clicks']) ?></td></tr>
+          <?php endforeach; ?>
+          <?php if (!$categories): ?><tr><td class="muted">ยังไม่มีคลิกในช่วงนี้</td></tr><?php endif; ?>
+        </table>
+        <?php if ($promos): ?>
+          <h2>แบนเนอร์โปร</h2>
+          <table class="table">
+            <?php foreach ($promos as $p): ?>
+              <tr><td><a href="<?= e(admin_url('promos', ['id' => $p['id']])) ?>"><?= e($p['title']) ?></a></td><td class="num"><?= number_format((int) $p['clicks']) ?></td></tr>
+            <?php endforeach; ?>
+          </table>
+        <?php endif; ?>
+      </section>
+    </div>
+
+    <section class="panel table-wrap">
+      <h2>บทความไหนพาคนไปซื้อ</h2>
+      <p class="muted small">คลิกที่กดจากหน้าบทความนั้น (การ์ดสินค้า กล่องสรุปสินค้า แบนเนอร์) · บทความที่ยังไม่มีคนกด ลองเพิ่มการ์ดสินค้าให้ตรงเรื่องขึ้น หรือย้ายสินค้าขึ้นไปช่วงต้นบทความ</p>
+      <table class="table">
+        <thead><tr><th>บทความ</th><th>หมวด</th><th class="num">คลิก</th></tr></thead>
+        <tbody>
+        <?php foreach ($articles as $a): ?>
+          <tr>
+            <td><a href="<?= e(article_link($a)) ?>" target="_blank"><?= e($a['title']) ?></a></td>
+            <td><?= e($a['category']) ?></td>
+            <td class="num"><?= $a['clicks'] ? number_format($a['clicks']) : '<span class="muted">0</span>' ?></td>
+          </tr>
+        <?php endforeach; ?>
+        <?php if (!$articles): ?><tr><td colspan="3" class="muted">ยังไม่มีบทความที่เผยแพร่</td></tr><?php endif; ?>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel table-wrap">
+      <h2>สินค้าที่ถูกกดมากที่สุด</h2>
+      <table class="table">
+        <thead><tr><th>สินค้า</th><th>หมวด</th><th class="num">คลิก</th><th class="num">คน</th></tr></thead>
+        <tbody>
+        <?php foreach ($products as $p): ?>
+          <tr>
+            <td><a href="<?= e(admin_url('edit', ['id' => $p['id']])) ?>">#<?= (int) $p['id'] ?> <?= e(mb_strimwidth($p['name'], 0, 70, '…')) ?></a></td>
+            <td><?= e($p['category']) ?></td>
+            <td class="num"><?= number_format((int) $p['clicks']) ?></td>
+            <td class="num"><?= number_format((int) $p['people']) ?></td>
+          </tr>
+        <?php endforeach; ?>
+        <?php if (!$products): ?><tr><td colspan="4" class="muted">ยังไม่มีคลิกในช่วงนี้</td></tr><?php endif; ?>
+        </tbody>
+      </table>
+    </section>
+    <p class="muted small">ยอดนี้คือคนที่กดไปร้านค้า ยอดสั่งซื้อและค่าคอมจริงดูได้ที่ Shopee Affiliate › รายงาน · ไม่นับบอทและไม่เก็บ IP</p>
     <?php
     admin_footer();
 }

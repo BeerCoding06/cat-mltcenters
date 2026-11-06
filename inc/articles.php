@@ -133,6 +133,21 @@ function reading_minutes(string $body): int
  *   [compare:tofu-litter-6l]          price table for one group_key
  * Returns ['html' => string, 'toc' => [[id, text], …]].
  */
+/** Products embedded with [product:ID] lines, in the order the article mentions them (active ones only). */
+function article_products(string $body): array
+{
+    preg_match_all('/^\[product:(\d+)\]\s*$/mu', $body, $m);
+    $ids = array_values(array_unique(array_map('intval', $m[1])));
+    if (!$ids) {
+        return [];
+    }
+    $rows = db_all('SELECT ' . product_columns() . ' FROM products WHERE active = 1 AND id IN (' . implode(',', $ids) . ')');
+    $byId = array_column($rows, null, 'id');
+    return array_values(array_filter(array_map(function ($id) use ($byId) {
+        return $byId[$id] ?? null;
+    }, $ids)));
+}
+
 function article_render(string $body): array
 {
     $html = '';

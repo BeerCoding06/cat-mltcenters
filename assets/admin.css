@@ -86,3 +86,11 @@ code { background: #f1eee8; padding: 1px 5px; border-radius: 4px; font-size: .9e
 .fetch-panel { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .fetch-panel p { margin: 0; }
 .studio-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* Click report */
+.report-range { display: flex; gap: 6px; }
+.report-range .btn { padding: 6px 14px; }
+.report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-bottom: 14px; }
+.report-cell { width: 45%; }
+.report-bar { display: block; height: 10px; border-radius: 99px; background: var(--cream-deep); overflow: hidden; }
+.report-bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }

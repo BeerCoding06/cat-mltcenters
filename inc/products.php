@@ -86,6 +86,29 @@ function product_validate(array $in): array
     return [$d, $errors];
 }
 
+/** Ranking pages (/top/<category>) list this many products, and need at least TOP_MIN_PRODUCTS to exist. */
+const TOP_LIMIT = 10;
+const TOP_MIN_PRODUCTS = 3;
+
+function top_link(string $category): string
+{
+    return url('top/' . rawurlencode($category));
+}
+
+/** Best sellers first (Shopee's sold count), then rating, then discount. */
+function top_products(string $category): array
+{
+    return db_all('SELECT ' . product_columns() . ' FROM products WHERE active = 1 AND category = ?
+                   ORDER BY sold DESC, rating DESC, discount DESC LIMIT ' . TOP_LIMIT, [$category]);
+}
+
+/** Categories with enough products for a ranking page, with their latest update time. */
+function top_categories(): array
+{
+    return db_all("SELECT category, COUNT(*) AS n, MAX(updated_at) AS updated_at FROM products
+                   WHERE active = 1 AND category <> '' GROUP BY category HAVING n >= " . TOP_MIN_PRODUCTS . ' ORDER BY n DESC, category');
+}
+
 function product_get(int $id)
 {
     return db_one('SELECT ' . product_columns() . ' FROM products WHERE id = ?', [$id]);

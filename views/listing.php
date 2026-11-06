@@ -41,6 +41,9 @@ $canonical = abs_url($basePath) . ($page > 1 ? '?page=' . $page : '');
 <section class="page-head">
   <nav class="crumbs"><a href="<?= e(url()) ?>">หน้าแรก</a> › <?= e($category) ?></nav>
   <h1 class="with-icon"><?= svg_category_icon($category) ?><?= e($category) ?> ลดราคา</h1>
+  <?php if (count(top_products($category)) >= TOP_MIN_PRODUCTS): ?>
+    <a class="top-link" href="<?= e(top_link($category)) ?>">🏆 <?= e($category) ?> ยี่ห้อไหนดี ดูอันดับขายดี →</a>
+  <?php endif; ?>
 </section>
 <?php elseif ($search !== ''): ?>
 <section class="page-head">
@@ -67,6 +70,15 @@ $canonical = abs_url($basePath) . ($page > 1 ? '?page=' . $page : '');
 <?php endif; ?>
 
 <?php require APP_ROOT . '/views/partials/promo-banners.php'; ?>
+
+<?php if (!empty($topCats)): ?>
+<nav class="top-links" aria-label="อันดับขายดีแต่ละหมวด">
+  <span>🏆 อันดับขายดี:</span>
+  <?php foreach ($topCats as $c): ?>
+    <a href="<?= e(top_link($c['category'])) ?>"><?= e($c['category']) ?></a>
+  <?php endforeach; ?>
+</nav>
+<?php endif; ?>
 
 <?php if ($categories): ?>
 <nav class="chips" aria-label="หมวดหมู่">

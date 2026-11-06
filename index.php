@@ -11,6 +11,8 @@ if ($path === '') {
     page_listing($_GET, $m[1]);
 } elseif (preg_match('#^p/(.+)$#u', $path, $m)) {
     page_product($m[1]);
+} elseif (preg_match('#^top/(.+)$#u', $path, $m)) {
+    page_top($m[1]);
 } elseif ($path === 'breeds') {
     page_breeds();
 } elseif (preg_match('#^breed/(.+)$#u', $path, $m)) {
@@ -94,6 +96,7 @@ function page_listing(array $q, $category = null): void
     render('listing', [
         'news'        => $isFrontPage ? news_latest(5) : [],
         'promos'      => $isFrontPage ? promos_live('home') : [],
+        'topCats'     => $isFrontPage ? top_categories() : [],
         // Thai breeds first on the front page
         'breeds'      => $isFrontPage ? db_all("SELECT * FROM breeds ORDER BY CASE WHEN origin LIKE '%ไทย%' THEN 0 ELSE 1 END, name_th LIMIT 4") : [],
         'topSellers'  => $isFrontPage
@@ -143,6 +146,22 @@ function page_product(string $slug): void
         'compare'  => $compare,
         'related'  => $related,
         'articles' => $product['category'] !== '' ? articles_published(3, $product['category']) : [],
+    ]);
+}
+
+/** "Best sellers" ranking for one category: answers "<category> ยี่ห้อไหนดี" searches with live prices. */
+function page_top(string $category): void
+{
+    $products = top_products($category);
+    if (count($products) < TOP_MIN_PRODUCTS) {
+        render('404', [], 404);
+        return;
+    }
+    render('top', [
+        'category' => $category,
+        'products' => $products,
+        'articles' => articles_published(3, $category),
+        'others'   => top_categories(),
     ]);
 }
 
@@ -217,6 +236,7 @@ function page_article(string $slug, array $q): void
             : [],
         'more'      => articles_published(3, null, (int) $article['id']),
         'promos'    => article_is_promo($article) ? promos_live('articles') : [],
+        'mentioned' => article_products($article['body']),
     ]);
 }
 
@@ -276,6 +296,9 @@ function page_sitemap(): void
     }
     foreach (db_all("SELECT DISTINCT category FROM products WHERE active = 1 AND category <> ''") as $row) {
         $urls[] = ['loc' => abs_url('c/' . rawurlencode($row['category'])), 'lastmod' => null];
+    }
+    foreach (top_categories() as $row) {
+        $urls[] = ['loc' => abs_url('top/' . rawurlencode($row['category'])), 'lastmod' => substr($row['updated_at'], 0, 10)];
     }
     if (config('sitemap_products', true)) {
         foreach (db_all('SELECT slug, updated_at FROM products WHERE active = 1 ORDER BY id') as $row) {

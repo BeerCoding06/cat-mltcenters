@@ -80,6 +80,28 @@ $jsonLd = [
     <?= $rendered['html'] ?>
   </div>
 
+  <?php if (count($mentioned) >= 2): ?>
+  <section class="deal-box" aria-labelledby="deal-box-title">
+    <h2 id="deal-box-title">สรุปสินค้าในบทความนี้</h2>
+    <p class="deal-box-note">รวมของที่พูดถึงไว้ที่เดียว ราคาอัปเดตอัตโนมัติ กดดูดีลเพื่อเช็กราคาล่าสุดบนร้าน</p>
+    <ol class="deal-box-list">
+      <?php foreach ($mentioned as $p): ?>
+        <li>
+          <a class="deal-box-media" href="<?= e(product_link($p)) ?>" tabindex="-1">
+            <?php if ($p['image_url'] !== ''): ?><img src="<?= e(image_thumb($p['image_url'])) ?>" alt="" width="64" height="64" loading="lazy" referrerpolicy="no-referrer"><?php endif; ?>
+          </a>
+          <span class="deal-box-name"><a href="<?= e(product_link($p)) ?>"><?= e($p['name']) ?></a>
+            <span class="deal-box-price"><?= e(baht($p['price'])) ?><?php if ((int) $p['discount'] > 0): ?> <small>-<?= (int) $p['discount'] ?>%</small><?php endif; ?></span></span>
+          <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูดีล</a>
+        </li>
+      <?php endforeach; ?>
+    </ol>
+    <?php if ($article['category'] !== '' && count(top_products($article['category'])) >= TOP_MIN_PRODUCTS): ?>
+      <a class="top-link" href="<?= e(top_link($article['category'])) ?>">🏆 ดูอันดับ<?= e($article['category']) ?>ขายดีทั้งหมด →</a>
+    <?php endif; ?>
+  </section>
+  <?php endif; ?>
+
   <?php
   $shareUrl = $canonical;
   $shareTitle = $article['title'];
