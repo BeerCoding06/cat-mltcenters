@@ -255,6 +255,13 @@ function import_csv($handle): array
         return $result;
     }
 
+    // An optional top_rank column replaces today's best-seller list (the "ขายดีที่สุดวันนี้" section), the same
+    // way bin/fetch-top-products.php does with the API — for when the list is picked by hand from the portal.
+    $rankCol = array_search('top_rank', $header, true);
+    if ($rankCol !== false) {
+        db_run('UPDATE products SET top_rank = NULL WHERE top_rank IS NOT NULL');
+    }
+
     $line = 1;
     while (($row = fgetcsv($handle)) !== false) {
         $line++;
@@ -273,6 +280,10 @@ function import_csv($handle): array
             $result['errors'][$line] = $idOrErrors;
         } else {
             $result[$status]++;
+            $rank = $rankCol !== false ? (int) parse_number($row[$rankCol] ?? '') : 0;
+            if ($rank > 0) {
+                db_run('UPDATE products SET top_rank = ? WHERE id = ?', [$rank, $idOrErrors]);
+            }
         }
     }
     return $result;

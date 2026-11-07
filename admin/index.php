@@ -600,6 +600,8 @@ function action_import(): void
          <code>rating</code>, <code>sold</code>, <code>group_key</code>, <code>description</code>, <code>active</code></p>
       <p>ถ้า <code>product_url</code> (หรือ <code>affiliate_url</code>) ตรงกับสินค้าที่มีอยู่ ระบบจะ<strong>อัปเดตราคา</strong>และบันทึกประวัติราคาให้อัตโนมัติ
          — นำเข้าไฟล์เดิมซ้ำทุกวันเพื่อให้กราฟราคาเดินได้</p>
+      <p>ใส่คอลัมน์ <code>top_rank</code> (1, 2, 3 …) เพื่อตั้งรายการ <strong>"ขายดีที่สุดวันนี้"</strong> บนหน้าแรก
+         — ไฟล์ที่มีคอลัมน์นี้จะแทนที่อันดับเดิมทั้งหมด แถวที่เว้นว่างไม่ติดอันดับ</p>
       <a class="btn btn-ghost" href="<?= e(admin_url('template')) ?>">ดาวน์โหลดไฟล์ตัวอย่าง</a>
     </section>
     <?php

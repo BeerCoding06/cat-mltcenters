@@ -103,7 +103,7 @@ $canonical = abs_url($basePath) . ($page > 1 ? '?page=' . $page : '');
 <section class="section section-tight">
   <div class="section-head">
     <h2>🔥 ขายดีที่สุดวันนี้</h2>
-    <span class="muted-note">อัปเดตทุกเช้าจากยอดขายบน Shopee</span>
+    <span class="muted-note">เรียงตามยอดขายบน Shopee</span>
   </div>
   <div class="grid">
     <?php foreach ($topSellers as $p): ?>
