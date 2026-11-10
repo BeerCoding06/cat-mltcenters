@@ -249,6 +249,11 @@ h1, h2, h3 { letter-spacing: -.005em; }
 .article-head h1 { margin: 0 0 8px; font-size: clamp(1.6rem, 4vw, 2.4rem); line-height: 1.3; }
 .article-cover { width: 100%; border-radius: var(--radius); margin: 16px 0 8px; }
 .disclosure-inline { font-size: .82rem; color: var(--muted); background: var(--cream); padding: 8px 14px; border-radius: var(--radius-sm); }
+.campaign-faq details { border-bottom: 1px solid var(--line); padding: 10px 0; }
+.campaign-faq summary { cursor: pointer; font-weight: 700; }
+.campaign-faq details p { margin: 8px 0 0; }
+.read-next { background: var(--cream); border-left: 4px solid var(--accent); border-radius: var(--radius-sm); padding: 10px 14px; margin: 18px 0; }
+.read-next span { font-weight: 700; margin-right: 4px; }
 .toc { background: var(--cream); border: 2px dashed var(--line); border-radius: var(--radius-sm); padding: 14px 18px; margin: 16px 0; }
 .toc strong { font-family: var(--font-display); }
 .toc ol { margin: 8px 0 0; padding-left: 0; list-style: none; }

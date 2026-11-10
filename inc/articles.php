@@ -41,6 +41,24 @@ function articles_published(int $limit, ?string $category = null, int $excludeId
     return db_all($sql . ' ORDER BY published_at DESC LIMIT ?', $params);
 }
 
+/** "Read next" picks: newest articles in the same category first, topped up with the newest of the rest. */
+function articles_related(array $article, int $limit = 3): array
+{
+    $picked = [];
+    if ($article['category'] !== '') {
+        foreach (articles_published($limit, $article['category'], (int) $article['id']) as $a) {
+            $picked[$a['id']] = $a;
+        }
+    }
+    foreach (articles_published($limit * 2, null, (int) $article['id']) as $a) {
+        if (count($picked) >= $limit) {
+            break;
+        }
+        $picked[$a['id']] = $a;
+    }
+    return array_values($picked);
+}
+
 /** Returns [$data, $errors]. */
 function article_validate(array $in): array
 {

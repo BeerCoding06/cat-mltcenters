@@ -33,6 +33,10 @@ if ($path === '') {
     page_sitemap();
 } elseif ($path === 'robots.txt') {
     page_robots();
+} elseif ($path === indexnow_key() . '.txt') {
+    // IndexNow key file: proves to Bing & co. that submissions really come from this site.
+    header('Content-Type: text/plain; charset=utf-8');
+    echo indexnow_key();
 } elseif ($path === 'about') {
     render('about');
 } elseif ($path === 'game') {
@@ -274,7 +278,7 @@ function page_article(string $slug, array $q): void
         'deals'     => $article['category'] !== ''
             ? db_all('SELECT ' . product_columns() . ' FROM products WHERE category = ? AND active = 1 ORDER BY discount DESC LIMIT 4', [$article['category']])
             : [],
-        'more'      => articles_published(3, null, (int) $article['id']),
+        'more'      => articles_related($article),
         'promos'    => article_is_promo($article) ? promos_live('articles') : [],
         'mentioned' => article_products($article['body']),
     ]);

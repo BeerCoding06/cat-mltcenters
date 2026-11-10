@@ -15,6 +15,9 @@ $shareImage = !empty($ogImage) ? $ogImage : abs_url('assets/og-default.jpg');
   <meta name="description" content="<?= e($pageDescription) ?>">
   <?php if (!empty($noindex)): ?>
   <meta name="robots" content="noindex, follow">
+  <?php else: ?>
+  <?php // Lets Google show large cover images (needed for Discover and image-rich results). ?>
+  <meta name="robots" content="max-image-preview:large">
   <?php endif; ?>
   <?php if (!empty($canonical)): ?>
   <link rel="canonical" href="<?= e($canonical) ?>">

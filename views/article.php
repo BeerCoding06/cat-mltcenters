@@ -76,8 +76,17 @@ $jsonLd = [
   </nav>
   <?php endif; ?>
 
+  <?php
+  // One "read next" link part-way through (before the third section), so readers who stop early still see it.
+  $bodyHtml = $rendered['html'];
+  if ($more && preg_match_all('/<h2[\s>]/', $bodyHtml, $h2s, PREG_OFFSET_CAPTURE) >= 3) {
+      $readNext = '<aside class="read-next"><span>อ่านต่อ</span> <a href="' . e(article_link($more[0])) . '">' . e($more[0]['title']) . '</a></aside>';
+      $at = $h2s[0][2][1];
+      $bodyHtml = substr($bodyHtml, 0, $at) . $readNext . substr($bodyHtml, $at);
+  }
+  ?>
   <div class="prose article-body">
-    <?= $rendered['html'] ?>
+    <?= $bodyHtml ?>
   </div>
 
   <?php if (count($mentioned) >= 2): ?>
@@ -88,7 +97,7 @@ $jsonLd = [
       <?php foreach ($mentioned as $p): ?>
         <li>
           <a class="deal-box-media" href="<?= e(product_link($p)) ?>" tabindex="-1">
-            <?php if ($p['image_url'] !== ''): ?><img src="<?= e(image_thumb($p['image_url'])) ?>" alt="" width="64" height="64" loading="lazy" referrerpolicy="no-referrer"><?php endif; ?>
+            <?php if ($p['image_url'] !== ''): ?><img src="<?= e(image_thumb($p['image_url'])) ?>" alt="<?= e($p['name']) ?>" width="64" height="64" loading="lazy" referrerpolicy="no-referrer"><?php endif; ?>
           </a>
           <span class="deal-box-name"><a href="<?= e(product_link($p)) ?>"><?= e($p['name']) ?></a>
             <span class="deal-box-price"><?= e(baht($p['price'])) ?><?php if ((int) $p['discount'] > 0): ?> <small>-<?= (int) $p['discount'] ?>%</small><?php endif; ?></span>
@@ -129,7 +138,7 @@ $jsonLd = [
 
 <?php if ($more): ?>
 <section class="section">
-  <h2>บทความอื่นที่น่าสนใจ</h2>
+  <h2>อ่านต่อ: เรื่องที่เกี่ยวข้อง</h2>
   <div class="article-grid">
     <?php foreach ($more as $a): ?>
       <?php require APP_ROOT . '/views/partials/article-card.php'; ?>

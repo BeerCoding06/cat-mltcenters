@@ -1,6 +1,6 @@
 <?php
 
-const SCHEMA_VERSION = 10;
+const SCHEMA_VERSION = 11;
 
 /** Changes to tables that already exist; new tables just go in schema.sql. Keyed by the version they bring the DB to. */
 const MIGRATIONS = [
@@ -24,6 +24,9 @@ const MIGRATIONS = [
     10 => [
         "ALTER TABLE visits ADD COLUMN source TEXT NOT NULL DEFAULT ''",
         "ALTER TABLE visits ADD COLUMN landing TEXT NOT NULL DEFAULT ''",
+    ],
+    11 => [
+        'ALTER TABLE articles ADD COLUMN indexnow_at TEXT',
     ],
 ];
 

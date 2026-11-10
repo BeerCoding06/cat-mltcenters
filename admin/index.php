@@ -224,6 +224,8 @@ function action_dashboard(): void
     $lastFacebook = is_file(facebook_status_file()) ? json_decode((string) file_get_contents(facebook_status_file()), true) : null;
     $fbRecent = db_all('SELECT title, slug, fb_posted_at, fb_error FROM articles WHERE fb_posted_at IS NOT NULL OR fb_error IS NOT NULL
                         ORDER BY COALESCE(fb_posted_at, published_at) DESC LIMIT 5');
+    $lastIndexnow = is_file(indexnow_status_file()) ? json_decode((string) file_get_contents(indexnow_status_file()), true) : null;
+    $indexnowSent = (int) db_value('SELECT COUNT(*) FROM articles WHERE indexnow_at IS NOT NULL');
     $breedCount = (int) db_value('SELECT COUNT(*) FROM breeds');
     $newsCount = (int) db_value('SELECT COUNT(*) FROM news_items');
 
@@ -288,6 +290,19 @@ function action_dashboard(): void
       <?php if (facebook_configured()): ?>
         <form method="post" action="<?= e(admin_url('facebook_now')) ?>"><?= csrf_field() ?><button class="btn btn-ghost">โพสต์ตอนนี้</button></form>
       <?php endif; ?>
+    </section>
+
+    <section class="panel fetch-panel">
+      <div>
+        <h2>แจ้ง Bing ทันทีที่มีบทความใหม่ (IndexNow)</h2>
+        <?php if (!indexnow_enabled()): ?>
+          <p class="muted">ปิดอยู่บนเครื่องนี้ — ทำงานเฉพาะบนเว็บจริงที่เป็น https</p>
+        <?php else: ?>
+          <p>เปิดใช้งานแล้ว · เช็กทุก 10 นาที · ส่งไปแล้ว <?= number_format($indexnowSent) ?> บทความ<?= $lastIndexnow ? ' · ล่าสุด ' . e($lastIndexnow['finished_at']) : '' ?></p>
+          <?php if (!empty($lastIndexnow['error'])): ?><p class="error"><?= e($lastIndexnow['error']) ?></p><?php endif; ?>
+          <p class="muted small">Google ไม่รับ IndexNow — ฝั่ง Google ใช้ sitemap และการกด Request indexing ใน Search Console</p>
+        <?php endif; ?>
+      </div>
     </section>
 
     <div class="stat-row">

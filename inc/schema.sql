@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS articles (
     fb_post_id   TEXT,                             -- Facebook Page post, once shared (bin/post-facebook.php)
     fb_posted_at TEXT,
     fb_error     TEXT,
+    indexnow_at  TEXT,                             -- when the URL was sent to IndexNow (Bing & co.)
     body         TEXT    NOT NULL DEFAULT '',    -- simple Markdown + product shortcodes
     status       TEXT    NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
     published_at TEXT,

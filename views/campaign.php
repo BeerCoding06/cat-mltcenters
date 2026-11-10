@@ -13,6 +13,24 @@ $title = 'โปร ' . $name . ' ' . $year . ' ของใช้แมว ค�
 $description = 'รวมดีลของใช้แมวช่วงโปร ' . $name . ' (' . $dateText . ') อาหารแมว ทรายแมว ขนมแมว จาก ' . platforms_label()
     . ' พร้อมราคาต่ำสุด 30 วันให้เช็กก่อนกดซื้อ';
 $canonical = abs_url('sale/' . $campaign['slug']);
+// Questions people search before a shopping day; also sent as FAQPage data so Google can show them in results.
+$faq = [
+    ['โปร ' . $name . ' เริ่มกี่โมง?',
+     'ร้านส่วนใหญ่บน ' . platforms_label() . ' เริ่มลดตั้งแต่ 00:00 น. ของวันที่ ' . $dateText . ' และบางร้านเปิดดีลก่อนวันจริง 1–2 วัน ใส่ของลงตะกร้าและเก็บโค้ดไว้ก่อนจะได้กดจ่ายทันที'],
+    ['ของใช้แมวอะไรน่าตุนช่วง ' . $name . '?',
+     'ของที่ใช้ทุกวันและเก็บได้นาน เช่น อาหารเม็ด ทรายแมว ขนมแมวเลีย และอาหารเปียกแบบยกลัง ของชิ้นใหญ่อย่างคอนโดแมวหรือน้ำพุแมวก็คุ้มถ้ารออยู่แล้ว'],
+    ['รู้ได้ยังไงว่าลดราคาจริง?',
+     'เปิดหน้าสินค้าบนเว็บเราเพื่อดูกราฟราคาย้อนหลังและราคาต่ำสุดใน 30 วัน ถ้าราคาวันโปรไม่ต่ำกว่าช่วงปกติ แปลว่าส่วนลดไม่ได้พิเศษจริง'],
+    ['ตุนอาหารแมวเม็ดได้นานแค่ไหน?',
+     'ถุงที่ยังไม่เปิดให้ดูวันหมดอายุบนถุง ส่วนถุงที่เปิดแล้วควรใช้ให้หมดใน 4–6 สัปดาห์ และเก็บในที่แห้ง ปิดถุงให้สนิท จะได้ไม่ชื้นและไม่หืน'],
+];
+$jsonLd = [
+    '@context'   => 'https://schema.org',
+    '@type'      => 'FAQPage',
+    'mainEntity' => array_map(function ($qa) {
+        return ['@type' => 'Question', 'name' => $qa[0], 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $qa[1]]];
+    }, $faq),
+];
 if ($campaign['state'] === 'upcoming') {
     $status = 'อีก ' . (int) $campaign['days_left'] . ' วันถึงโปร ' . $name . ' (' . $dateText . ')';
 } elseif ($campaign['state'] === 'live') {
@@ -53,6 +71,16 @@ if ($campaign['state'] === 'upcoming') {
     </div>
   </section>
 <?php endforeach; ?>
+
+<section class="section campaign-faq">
+  <h2>คำถามที่พบบ่อยเรื่องโปร <?= e($name) ?></h2>
+  <?php foreach ($faq as $qa): ?>
+    <details>
+      <summary><?= e($qa[0]) ?></summary>
+      <p><?= e($qa[1]) ?></p>
+    </details>
+  <?php endforeach; ?>
+</section>
 
 <p class="top-note">ราคาบนหน้านี้คือราคาที่เราบันทึกล่าสุด ส่วนลดวันโปรจริงขึ้นกับร้านและโค้ด กด "ดูดีล" เพื่อเช็กราคาบนร้าน
   · <a href="<?= e(url('deals')) ?>">ดูดีลประจำสัปดาห์</a></p>

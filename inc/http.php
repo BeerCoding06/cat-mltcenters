@@ -52,6 +52,31 @@ function http_get_json(string $url, array $headers = []): array
  * POST a form to an API and decode the JSON reply. Returns [status, data]; does not throw on HTTP errors,
  * since APIs such as Facebook's explain the problem in the body.
  */
+/** POSTs $payload as a JSON body and returns the HTTP status (the body is not needed by callers). */
+function http_post_raw_json(string $url, array $payload, int $timeout = 20): int
+{
+    if (!is_http_url($url)) {
+        throw new RuntimeException('Not an http(s) URL: ' . $url);
+    }
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_PROTOCOLS      => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_TIMEOUT        => $timeout,
+        CURLOPT_HTTPHEADER     => ['Content-Type: application/json; charset=utf-8'],
+    ]);
+    $body = curl_exec($ch);
+    $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+    if ($body === false) {
+        throw new RuntimeException('Request failed: ' . $error);
+    }
+    return $status;
+}
+
 function http_post_json(string $url, array $fields, int $timeout = 20): array
 {
     if (!is_http_url($url)) {
