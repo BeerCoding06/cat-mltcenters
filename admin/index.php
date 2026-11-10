@@ -183,6 +183,13 @@ function action_dashboard(): void
     $visitWeek = array_sum(array_slice($visitDays, -7));
     $sources = db_all("SELECT CASE WHEN source = '' THEN '(ก่อนเริ่มเก็บ)' ELSE source END AS source, COUNT(*) AS n
                          FROM visits WHERE day >= ? GROUP BY 1 ORDER BY n DESC LIMIT 10", [date('Y-m-d', strtotime('-6 days'))]);
+    // Share of visitors who went on to a shop (visits and clicks share the same daily visitor hash), and Google week on week.
+    $visitorsWeek = (int) db_value('SELECT COUNT(*) FROM visits WHERE day >= ?', [date('Y-m-d', strtotime('-6 days'))]);
+    $clickersWeek = (int) db_value('SELECT COUNT(DISTINCT substr(clicked_at, 1, 10) || visitor_hash) FROM clicks WHERE clicked_at >= ?', [$d7]);
+    $clickRate = $visitorsWeek > 0 ? $clickersWeek / $visitorsWeek * 100 : 0.0;
+    $googleWeek = (int) db_value("SELECT COUNT(*) FROM visits WHERE source = 'Google' AND day >= ?", [date('Y-m-d', strtotime('-6 days'))]);
+    $googlePrev = (int) db_value("SELECT COUNT(*) FROM visits WHERE source = 'Google' AND day >= ? AND day < ?",
+                                 [date('Y-m-d', strtotime('-13 days')), date('Y-m-d', strtotime('-6 days'))]);
     $landings = db_all("SELECT landing, COUNT(*) AS n FROM visits WHERE day >= ? AND landing <> '' GROUP BY landing ORDER BY n DESC LIMIT 10",
                        [date('Y-m-d', strtotime('-6 days'))]);
 
@@ -291,6 +298,16 @@ function action_dashboard(): void
           <span class="stat-sub"><?= number_format((int) $s['visitors']) ?> ผู้เยี่ยมชมไม่ซ้ำ</span>
         </div>
       <?php endforeach; ?>
+      <div class="stat">
+        <span class="stat-label">อัตรากดไปร้าน · 7 วัน</span>
+        <strong class="stat-value"><?= number_format($clickRate, 1) ?>%</strong>
+        <span class="stat-sub"><?= number_format($clickersWeek) ?> จาก <?= number_format($visitorsWeek) ?> คน · เป้า 5–10%</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">คนจาก Google · 7 วัน</span>
+        <strong class="stat-value"><?= number_format($googleWeek) ?></strong>
+        <span class="stat-sub">สัปดาห์ก่อน <?= number_format($googlePrev) ?> คน<?php if ($googlePrev > 0): ?> · <?= $googleWeek >= $googlePrev ? '+' : '' ?><?= number_format(($googleWeek - $googlePrev) / $googlePrev * 100) ?>%<?php endif; ?></span>
+      </div>
       <div class="stat">
         <span class="stat-label">สินค้าที่แสดงอยู่</span>
         <strong class="stat-value"><?= number_format((int) $productCount['active']) ?></strong>
