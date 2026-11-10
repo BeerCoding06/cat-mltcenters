@@ -264,6 +264,7 @@ function article_embed(string $type, string $arg): string
     if (!$products) {
         return '';
     }
+    $summaries = price_summaries($products);
     ob_start();
     echo '<div class="grid grid-embed">';
     foreach ($products as $p) {

@@ -699,6 +699,22 @@ img.photo { display: block; width: 100%; height: 100%; object-fit: cover; backgr
 .section-note { font-size: .9rem; color: var(--muted); margin: -4px 0 12px; }
 .campaign-status { display: inline-block; margin: 8px 0 0; padding: 6px 14px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-weight: 700; }
 .campaign-tips ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+.badge-low { position: absolute; top: 10px; right: 10px; background: var(--good); color: #fff; font-weight: 700; font-size: .75rem; padding: 3px 9px; border-radius: 999px; }
+.top-picks { margin: 18px 0 22px; padding: 14px 16px; border-radius: var(--radius); background: var(--cream-deep); border: 2px solid var(--ginger); }
+.top-picks h2 { margin: 0 0 10px; font-size: 1.1rem; }
+.top-picks .deal-box-list { margin: 0; }
+/* Phones: a compact deal pill beside the 🐾 button, so the main pick is always one tap away while reading. */
+.sticky-deal { display: none; }
+@media (max-width: 760px) {
+  .sticky-deal { display: flex; align-items: center; gap: 10px; position: fixed; left: 88px; right: 12px; bottom: 16px; z-index: 31;
+    min-height: 58px; padding: 6px 6px 6px 14px; background: var(--surface); border-radius: 999px; box-shadow: 0 10px 28px -10px rgba(60, 30, 10, .45); border: 2px solid var(--line); }
+  .sticky-deal-text { display: flex; flex-direction: column; min-width: 0; flex: 1; line-height: 1.25; font-size: .8rem; }
+  .sticky-deal-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
+  .sticky-deal strong { color: var(--accent); font-size: 1rem; }
+  .sticky-deal small { color: var(--good); font-weight: 700; }
+  .sticky-deal .btn { padding: 10px 16px; border-radius: 999px; white-space: nowrap; }
+  body:has(.sticky-deal) .site-footer { padding-bottom: 90px; }
+}
 .card-low { margin: 2px 0 0; font-size: .8rem; color: var(--muted); }
 .card-low-best { color: var(--good); font-weight: 700; }
 .deal-box-low { font-size: .78rem; font-weight: 400; color: var(--muted); }

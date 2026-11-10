@@ -12,6 +12,9 @@
     <?php if (!empty($p['top_rank'])): ?>
       <span class="badge-rank">ขายดี #<?= (int) $p['top_rank'] ?></span>
     <?php endif; ?>
+    <?php if (!empty($summaries[(int) $p['id']]['is_lowest'])): ?>
+      <span class="badge-low">ถูกสุดใน 30 วัน</span>
+    <?php endif; ?>
   </a>
   <div class="card-body">
     <span class="platform platform-<?= e($p['platform']) ?>"><?= e(PLATFORMS[$p['platform']]) ?></span>

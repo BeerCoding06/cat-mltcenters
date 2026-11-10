@@ -13,6 +13,9 @@ $noindex = $isPreview;
 $coverUrl = article_cover_url($article);
 $ogImage = $coverUrl !== '' ? ($coverUrl[0] === '/' ? abs_url(ltrim($coverUrl, '/')) : $coverUrl) : article_first_product_image($article['body']);
 $ogType = 'article';
+// Shown near the top and in the phone deal bar: the article's own products first, else the category's best deals.
+$topPicks = array_slice($mentioned ?: $deals, 0, 3);
+$topSummaries = price_summaries($topPicks);
 $updated = $article['updated_at'];
 $jsonLd = [
     '@context' => 'https://schema.org',
@@ -62,6 +65,26 @@ $jsonLd = [
     <?php endif; ?>
     <p class="disclosure-inline">บทความนี้มีลิงก์ Affiliate — ถ้าซื้อผ่านลิงก์ เราอาจได้ค่าคอมมิชชันเล็กน้อย โดยคุณไม่ต้องจ่ายเพิ่ม</p>
   </header>
+
+  <?php if ($topPicks): ?>
+  <section class="top-picks" aria-labelledby="top-picks-title">
+    <h2 id="top-picks-title"><?= $mentioned ? 'สินค้าที่แนะนำในบทความนี้' : 'ดีล' . e($article['category']) . 'ที่น่าสนใจ' ?></h2>
+    <ol class="deal-box-list">
+      <?php foreach ($topPicks as $p): ?>
+        <?php $sum = $topSummaries[(int) $p['id']]; ?>
+        <li>
+          <a class="deal-box-media" href="<?= e(product_link($p)) ?>" tabindex="-1">
+            <?php if ($p['image_url'] !== ''): ?><img src="<?= e(image_thumb($p['image_url'])) ?>" alt="<?= e($p['name']) ?>" width="64" height="64" referrerpolicy="no-referrer"><?php endif; ?>
+          </a>
+          <span class="deal-box-name"><a href="<?= e(product_link($p)) ?>"><?= e($p['name']) ?></a>
+            <span class="deal-box-price"><?= e(baht($p['price'])) ?><?php if ((int) $p['discount'] > 0): ?> <small>-<?= (int) $p['discount'] ?>%</small><?php endif; ?></span>
+            <?php if ($sum['is_lowest']): ?><span class="deal-box-low best">ราคาต่ำสุดใน 30 วัน</span><?php endif; ?></span>
+          <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูดีล</a>
+        </li>
+      <?php endforeach; ?>
+    </ol>
+  </section>
+  <?php endif; ?>
 
   <?php require APP_ROOT . '/views/partials/promo-banners.php'; ?>
 
@@ -123,6 +146,15 @@ $jsonLd = [
   require APP_ROOT . '/views/partials/share.php';
   ?>
 </article>
+
+<?php if ($topPicks): ?>
+  <?php $p = $topPicks[0]; ?>
+  <aside class="sticky-deal" aria-label="ดีลแนะนำ">
+    <span class="sticky-deal-text"><span class="sticky-deal-name"><?= e($p['name']) ?></span>
+      <strong><?= e(baht($p['price'])) ?></strong><?php if ($topSummaries[(int) $p['id']]['is_lowest']): ?> <small>ถูกสุดใน 30 วัน</small><?php endif; ?></span>
+    <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูดีล</a>
+  </aside>
+<?php endif; ?>
 
 <?php if ($deals): ?>
 <section class="section">
