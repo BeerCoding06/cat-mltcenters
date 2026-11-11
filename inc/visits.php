@@ -34,7 +34,7 @@ const VISIT_GOAL = 300;
 
 /** Known referrers by host, matched in order. utm_source=… on a link wins over the referrer. */
 const VISIT_SOURCES = [
-    'google' => 'Google', 'bing' => 'Bing', 'facebook' => 'Facebook', 'fb.' => 'Facebook', 'line.' => 'LINE',
+    'fbgroup' => 'กลุ่ม Facebook', 'google' => 'Google', 'bing' => 'Bing', 'facebook' => 'Facebook', 'fb.' => 'Facebook', 'line.' => 'LINE',
     'tiktok' => 'TikTok', 'pantip' => 'Pantip', 'youtube' => 'YouTube', 'instagram' => 'Instagram', 'yahoo' => 'Yahoo',
     'duckduckgo' => 'DuckDuckGo', 'shopee' => 'Shopee', 'lazada' => 'Lazada', 't.co' => 'X',
 ];

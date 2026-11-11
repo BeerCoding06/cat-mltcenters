@@ -102,6 +102,32 @@ switch ($action) {
     case 'promos':
         action_promos();
         break;
+    case 'share':
+        action_share();
+        break;
+    case 'share_group_add':
+        require_post();
+        $name = trim((string) ($_POST['name'] ?? ''));
+        $groupUrl = trim((string) ($_POST['url'] ?? ''));
+        if ($name !== '') {
+            db_run('INSERT INTO share_groups (name, url, created_at) VALUES (?, ?, ?)',
+                [mb_substr($name, 0, 120), preg_match('#^https://#', $groupUrl) ? $groupUrl : '', now()]);
+            flash('เพิ่มกลุ่มแล้ว');
+        }
+        admin_redirect('share');
+        break;
+    case 'share_group_delete':
+        require_post();
+        db_run('DELETE FROM share_groups WHERE id = ?', [(int) $_POST['id']]);
+        flash('ลบกลุ่มแล้ว');
+        admin_redirect('share');
+        break;
+    case 'share_log':
+        require_post();
+        share_record((int) $_POST['article_id'], (int) $_POST['group_id']);
+        flash('บันทึกแล้ว');
+        admin_redirect('share');
+        break;
     case 'promo_delete':
         require_post();
         db_run('DELETE FROM promos WHERE id = ?', [(int) $_POST['id']]);
@@ -934,6 +960,102 @@ function click_source_type(string $referer): string
         }
     }
     return $path === '/' ? 'หน้าแรก' : 'อื่นๆ';
+}
+
+/** Share kit: posts ready to paste into Facebook groups, which group got which article, and when. */
+function action_share(): void
+{
+    $groups = share_groups();
+    $queue = share_queue();
+    $visits = (int) db_value('SELECT COUNT(*) FROM visits WHERE source = ? AND day >= ?', ['กลุ่ม Facebook', date('Y-m-d', strtotime('-29 days'))]);
+    $daysAgo = function (?string $at): string {
+        if (!$at) {
+            return '';
+        }
+        $d = (int) floor((time() - strtotime($at)) / 86400);
+        return $d === 0 ? 'วันนี้' : $d . ' วันก่อน';
+    };
+
+    admin_header('ชุดแชร์');
+    ?>
+    <div class="toolbar"><h1>ชุดแชร์ลงกลุ่ม Facebook</h1></div>
+    <p class="muted">กดคัดลอกข้อความ แล้ววางโพสต์ในกลุ่มเอง จากนั้นกด "บันทึกว่าแชร์แล้ว" ลิงก์มี ?utm_source=<?= e(SHARE_UTM) ?> จึงนับคนที่มาจากกลุ่มแยกได้
+      · คนที่มาจากกลุ่ม 30 วัน: <strong><?= number_format($visits) ?></strong> คน
+      · อ่านกฎของแต่ละกลุ่มก่อน หลายกลุ่มไม่ให้โพสต์ลิงก์ หรือให้โพสต์เฉพาะวันที่กำหนด</p>
+
+    <section class="panel">
+      <h2>กลุ่มที่แชร์</h2>
+      <?php if ($groups): ?>
+        <table class="table">
+          <thead><tr><th>กลุ่ม</th><th class="num">แชร์แล้ว</th><th>ล่าสุด</th><th></th></tr></thead>
+          <tbody>
+          <?php foreach ($groups as $g): ?>
+            <tr>
+              <td><?php if ($g['url'] !== ''): ?><a href="<?= e($g['url']) ?>" target="_blank" rel="noopener"><?= e($g['name']) ?> ↗</a><?php else: ?><?= e($g['name']) ?><?php endif; ?></td>
+              <td class="num"><?= number_format((int) $g['shares']) ?></td>
+              <td><?= e($daysAgo($g['last_shared']) ?: '—') ?></td>
+              <td><form method="post" action="<?= e(admin_url('share_group_delete')) ?>" onsubmit="return confirm('ลบกลุ่มนี้และประวัติการแชร์ของกลุ่มนี้?')"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $g['id'] ?>"><button class="linklike">ลบ</button></form></td>
+            </tr>
+          <?php endforeach; ?>
+          </tbody>
+        </table>
+      <?php else: ?>
+        <p class="muted">ยังไม่มีกลุ่ม เพิ่มกลุ่มคนเลี้ยงแมวที่คุณเป็นสมาชิกอยู่ด้านล่าง</p>
+      <?php endif; ?>
+      <form class="inline-search" method="post" action="<?= e(admin_url('share_group_add')) ?>">
+        <?= csrf_field() ?>
+        <input name="name" placeholder="ชื่อกลุ่ม" required maxlength="120">
+        <input name="url" type="url" placeholder="https://www.facebook.com/groups/…">
+        <button class="btn btn-deal">เพิ่มกลุ่ม</button>
+      </form>
+    </section>
+
+    <h2>บทความที่ควรแชร์ต่อไป</h2>
+    <p class="muted small">เรียงจากบทความที่ยังไม่เคยแชร์ แล้วตามด้วยบทความที่แชร์ไปนานที่สุด · ไม่ควรแชร์บทความเดิมซ้ำในกลุ่มเดิมภายใน <?= SHARE_GAP_DAYS ?> วัน</p>
+    <?php foreach ($queue as $a): ?>
+      <section class="panel share-item">
+        <h3><a href="<?= e(article_link($a)) ?>" target="_blank"><?= e($a['title']) ?></a></h3>
+        <p class="muted small"><?= e($a['category']) ?> · <?= $a['last_shared'] ? 'แชร์ล่าสุด ' . e($daysAgo($a['last_shared'])) : 'ยังไม่เคยแชร์' ?></p>
+        <div class="share-captions">
+          <?php foreach (share_captions($a) as $label => $text): ?>
+            <div class="share-caption">
+              <strong class="small"><?= e($label) ?></strong>
+              <textarea readonly rows="<?= min(8, substr_count($text, "\n") + 2) ?>"><?= e($text) ?></textarea>
+              <button type="button" class="btn btn-ghost share-copy">คัดลอก</button>
+            </div>
+          <?php endforeach; ?>
+        </div>
+        <?php if ($groups): ?>
+          <form class="inline-search" method="post" action="<?= e(admin_url('share_log')) ?>">
+            <?= csrf_field() ?>
+            <input type="hidden" name="article_id" value="<?= (int) $a['id'] ?>">
+            <select name="group_id">
+              <?php foreach ($groups as $g): ?>
+                <?php $last = $a['groups'][(int) $g['id']] ?? null; $recent = $last && strtotime($last) > strtotime('-' . SHARE_GAP_DAYS . ' days'); ?>
+                <option value="<?= (int) $g['id'] ?>"<?= $recent ? ' disabled' : '' ?>><?= e($g['name']) ?><?= $last ? ' (แชร์บทความนี้แล้ว ' . e($daysAgo($last)) . ')' : '' ?></option>
+              <?php endforeach; ?>
+            </select>
+            <button class="btn btn-deal">บันทึกว่าแชร์แล้ว</button>
+          </form>
+        <?php endif; ?>
+      </section>
+    <?php endforeach; ?>
+    <?php if (!$queue): ?><p class="muted">ยังไม่มีบทความที่เผยแพร่</p><?php endif; ?>
+    <script>
+    document.addEventListener('click', function (ev) {
+      var btn = ev.target.closest('.share-copy');
+      if (!btn) { return; }
+      var box = btn.parentNode.querySelector('textarea');
+      var done = function () { btn.textContent = 'คัดลอกแล้ว ✓'; setTimeout(function () { btn.textContent = 'คัดลอก'; }, 1500); };
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(box.value).then(done, function () { box.select(); document.execCommand('copy'); done(); });
+      } else {
+        box.select(); document.execCommand('copy'); done();
+      }
+    });
+    </script>
+    <?php
+    admin_footer();
 }
 
 /** Where on a page a shop link sat (?at= on /go/ links). */

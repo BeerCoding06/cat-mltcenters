@@ -123,3 +123,20 @@ CREATE TABLE IF NOT EXISTS promo_clicks (
     suspect      INTEGER NOT NULL DEFAULT 0        -- 1 = left out of reports: no page it came from, or a burst
 );
 CREATE INDEX IF NOT EXISTS idx_promo_clicks_promo ON promo_clicks (promo_id, clicked_at);
+
+-- Facebook groups the owner shares articles to by hand (admin "ชุดแชร์"), and what went where.
+CREATE TABLE IF NOT EXISTS share_groups (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT    NOT NULL,
+    url         TEXT    NOT NULL DEFAULT '',
+    created_at  TEXT    NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS share_log (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    article_id  INTEGER NOT NULL REFERENCES articles (id) ON DELETE CASCADE,
+    group_id    INTEGER NOT NULL REFERENCES share_groups (id) ON DELETE CASCADE,
+    shared_at   TEXT    NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_share_log_article ON share_log (article_id, shared_at);
+CREATE INDEX IF NOT EXISTS idx_share_log_group ON share_log (group_id, shared_at);

@@ -1,6 +1,6 @@
 <?php
 
-const SCHEMA_VERSION = 12;
+const SCHEMA_VERSION = 13;
 
 /** Changes to tables that already exist; new tables just go in schema.sql. Keyed by the version they bring the DB to. */
 const MIGRATIONS = [
@@ -37,6 +37,7 @@ const MIGRATIONS = [
         "UPDATE clicks SET suspect = 1 WHERE referer = ''",
         "UPDATE promo_clicks SET suspect = 1 WHERE referer = ''",
     ],
+    // 13: share_groups + share_log are new tables (schema.sql)
 ];
 
 function db(): PDO

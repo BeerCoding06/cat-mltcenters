@@ -96,3 +96,10 @@ code { background: #f1eee8; padding: 1px 5px; border-radius: 4px; font-size: .9e
 .report-bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
 .visit-bars { position: relative; }
 .goal-line { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--accent, #b04a15); pointer-events: none; }
+
+/* Share kit */
+.share-item h3 { margin: 0 0 2px; font-size: 1.05rem; }
+.share-captions { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin: 10px 0; }
+.share-caption { display: flex; flex-direction: column; gap: 4px; }
+.share-caption textarea { width: 100%; font: inherit; font-size: .85rem; padding: 8px; border-radius: 10px; border: 1px solid var(--line); resize: vertical; }
+.share-caption .btn { align-self: flex-start; padding: 6px 14px; font-size: .85rem; }
