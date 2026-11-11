@@ -63,6 +63,9 @@ CREATE TABLE IF NOT EXISTS articles (
     fb_posted_at TEXT,
     fb_error     TEXT,
     indexnow_at  TEXT,                             -- when the URL was sent to IndexNow (Bing & co.)
+    pin_id       TEXT,                             -- Pinterest pin, once pinned (bin/post-pinterest.php)
+    pinned_at    TEXT,
+    pin_error    TEXT,
     body         TEXT    NOT NULL DEFAULT '',    -- simple Markdown + product shortcodes
     status       TEXT    NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
     published_at TEXT,

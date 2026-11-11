@@ -18,6 +18,13 @@ if (getenv('LINE_OA_URL')) {
 }
 $config['facebook']['page_token'] = (string) getenv('FB_PAGE_TOKEN');
 $config['mail']['resend_key'] = (string) getenv('RESEND_API_KEY');
+$config['pinterest']['app_id'] = (string) getenv('PINTEREST_APP_ID');
+$config['pinterest']['app_secret'] = (string) getenv('PINTEREST_APP_SECRET');
+$config['pinterest']['refresh_token'] = (string) getenv('PINTEREST_REFRESH_TOKEN');
+$config['pinterest']['board_id'] = (string) getenv('PINTEREST_BOARD_ID');
+if (getenv('PINTEREST_API_URL')) {
+    $config['pinterest']['api_url'] = rtrim((string) getenv('PINTEREST_API_URL'), '/');
+}
 $config['mail']['from'] = (string) getenv('MAIL_FROM');
 if (getenv('FB_GRAPH_URL')) {
     $config['facebook']['graph_url'] = rtrim((string) getenv('FB_GRAPH_URL'), '/');

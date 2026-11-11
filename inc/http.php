@@ -77,7 +77,7 @@ function http_post_raw_json(string $url, array $payload, int $timeout = 20, arra
     return $status;
 }
 
-function http_post_json(string $url, array $fields, int $timeout = 20): array
+function http_post_json(string $url, array $fields, int $timeout = 20, array $headers = []): array
 {
     if (!is_http_url($url)) {
         throw new RuntimeException('Not an http(s) URL: ' . $url);
@@ -89,7 +89,33 @@ function http_post_json(string $url, array $fields, int $timeout = 20): array
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_PROTOCOLS      => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         CURLOPT_TIMEOUT        => $timeout,
-        CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+        CURLOPT_HTTPHEADER     => array_merge(['Accept: application/json'], $headers),
+    ]);
+    $body = curl_exec($ch);
+    $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+    if ($body === false) {
+        throw new RuntimeException('Request failed: ' . $error);
+    }
+    $data = json_decode((string) $body, true);
+    return [$status, is_array($data) ? $data : []];
+}
+
+/** POSTs a JSON body and returns [status, decoded JSON response]. */
+function http_post_json_body(string $url, array $payload, array $headers = [], int $timeout = 30): array
+{
+    if (!is_http_url($url)) {
+        throw new RuntimeException('Not an http(s) URL: ' . $url);
+    }
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_PROTOCOLS      => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_TIMEOUT        => $timeout,
+        CURLOPT_HTTPHEADER     => array_merge(['Content-Type: application/json; charset=utf-8', 'Accept: application/json'], $headers),
     ]);
     $body = curl_exec($ch);
     $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);

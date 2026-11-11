@@ -51,6 +51,17 @@ return [
         'from'       => '',
     ],
 
+    // Pins each article with a cover to a Pinterest board (bin/post-pinterest.php). Needs an app at developers.pinterest.com
+    // with pins:write access; refresh_token comes from its OAuth flow and is swapped for access tokens on each run.
+    'pinterest' => [
+        'app_id'        => '',
+        'app_secret'    => '',
+        'refresh_token' => '',
+        'board_id'      => '',
+        'api_url'       => 'https://api.pinterest.com/v5',
+        'gap_minutes'   => 120,   // at most one pin per this many minutes, so the backlog goes out slowly
+    ],
+
     'facebook' => [
         'page_token' => '',
         'graph_url'  => 'https://graph.facebook.com/v21.0',

@@ -1,6 +1,6 @@
 <?php
 
-const SCHEMA_VERSION = 14;
+const SCHEMA_VERSION = 15;
 
 /** Changes to tables that already exist; new tables just go in schema.sql. Keyed by the version they bring the DB to. */
 const MIGRATIONS = [
@@ -39,6 +39,11 @@ const MIGRATIONS = [
     ],
     // 13: share_groups + share_log are new tables (schema.sql)
     // 14: price_alerts is a new table (schema.sql)
+    15 => [
+        'ALTER TABLE articles ADD COLUMN pin_id TEXT',
+        'ALTER TABLE articles ADD COLUMN pinned_at TEXT',
+        'ALTER TABLE articles ADD COLUMN pin_error TEXT',
+    ],
 ];
 
 function db(): PDO
