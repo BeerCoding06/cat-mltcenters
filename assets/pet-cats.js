@@ -1495,15 +1495,31 @@
       gone.forEach(function (cfg, i) { setTimeout(function () { sayGoodbye(cfg); }, i * 600); });
       return;
     }
-    var weak = store.cats.filter(function (c) { return c.care && c.care.health < CARE.warnAt; })[0];
+    // Health climbs back only about 1 point an hour, so a cat that was just fed, watered and dosed can still be weak
+    // for a day: warn only while there is something to do right now, and name just that.
+    var now = Date.now();
+    var weak = null;
+    var todo = [];
+    store.cats.some(function (c) {
+      var care = c.care;
+      if (!care || care.health >= CARE.warnAt) { return false; }
+      var list = [];
+      if (care.sick && (care.sick === 1 || !care.doses || now - care.lastDoseAt >= CARE.doseGap)) { list.push('ยา'); }
+      if (care.food < CARE.low) { list.push('อาหาร'); }
+      if (care.water < CARE.low) { list.push('น้ำ'); }
+      if (!list.length) { return false; }
+      weak = c;
+      todo = list;
+      return true;
+    });
     if (!weak) {
       return;
     }
     careCard.textContent = '';
     careCard.classList.add('is-warning');
     careCard.appendChild(h('h3', {}, [iconSvg('heart'), document.createTextNode(weak.name + 'อาการไม่ดีเลย')]));
-    careCard.appendChild(h('p', { text: weak.care.sick ? 'ป่วยหนักและอ่อนแรงมาก ต้องการยา อาหาร และน้ำด่วน'
-      : 'หิวและอ่อนแรงมาก ต้องการอาหารและน้ำด่วน' }));
+    careCard.appendChild(h('p', { text: (weak.care.sick ? 'ป่วยและอ่อนแรงมาก' : 'หิวและอ่อนแรงมาก') + ' ต้องการ'
+      + todo.join(' ').replace(/ (?=[^ ]+$)/, ' และ') + 'ด่วน' }));
     careCard.appendChild(h('div', { class: 'pet-care-actions' }, [
       h('button', { type: 'button', class: 'btn btn-deal', text: 'ไปดูแลเลย', onclick: function (e) {
         e.stopPropagation(); // or the outside-click handler shuts the circle straight away
