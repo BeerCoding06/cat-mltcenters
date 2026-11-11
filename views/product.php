@@ -71,6 +71,17 @@ if ($product['image_url'] !== '') {
 
     <a class="btn btn-deal btn-lg" href="<?= e(product_go_link($product, 'product')) ?>" rel="sponsored nofollow noopener" target="_blank">ไปที่ร้านค้าบน <?= e($platformLabel) ?> →</a>
     <p class="fine">ราคาอาจเปลี่ยนแปลง โปรดตรวจสอบราคาบนหน้าร้านก่อนสั่งซื้อ</p>
+    <?php if (alerts_enabled()): ?>
+      <form class="price-alert" method="post" action="<?= e(url('alert/' . (int) $product['id'])) ?>">
+        <label for="alert-email"><strong>🔔 แจ้งเตือนเมื่อราคาลด</strong> กรอกอีเมล เราจะส่งบอกเมื่อสินค้านี้ถูกลงจาก <?= e(baht($product['price'])) ?></label>
+        <span class="price-alert-row">
+          <input id="alert-email" type="email" name="email" required maxlength="200" placeholder="อีเมลของคุณ" autocomplete="email">
+          <input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
+          <button class="btn btn-ghost">รับแจ้งเตือน</button>
+        </span>
+        <small>ใช้อีเมลนี้เพื่อแจ้งราคาสินค้านี้เท่านั้น ยกเลิกได้จากลิงก์ในทุกอีเมล</small>
+      </form>
+    <?php endif; ?>
     <?php
     $shareUrl = $canonical;
     $shareTitle = $product['name'] . ' ราคา ' . baht($product['price']);

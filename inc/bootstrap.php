@@ -27,6 +27,7 @@ require APP_ROOT . '/inc/indexnow.php';
 require APP_ROOT . '/inc/breeds.php';
 require APP_ROOT . '/inc/news.php';
 require APP_ROOT . '/inc/share.php';
+require APP_ROOT . '/inc/alerts.php';
 
 date_default_timezone_set((string) config('timezone', 'Asia/Bangkok'));
 mb_internal_encoding('UTF-8');

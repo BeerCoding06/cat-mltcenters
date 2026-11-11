@@ -44,6 +44,13 @@ return [
 
     // Facebook Page auto-posting (bin/post-facebook.php): every article that goes live is shared on the Page once.
     // The token is a long-lived Page access token with pages_manage_posts — keep it out of git and chat.
+    // Price-drop alerts by email (inc/alerts.php), sent through Resend (resend.com). The form on product pages
+    // stays hidden until both are set; `from` must be on a domain verified in Resend, e.g. 'คัดมาเหมียว <deals@mltcenters.com>'.
+    'mail' => [
+        'resend_key' => '',
+        'from'       => '',
+    ],
+
     'facebook' => [
         'page_token' => '',
         'graph_url'  => 'https://graph.facebook.com/v21.0',

@@ -17,6 +17,8 @@ if (getenv('LINE_OA_URL')) {
     $config['line_oa_url'] = (string) getenv('LINE_OA_URL');
 }
 $config['facebook']['page_token'] = (string) getenv('FB_PAGE_TOKEN');
+$config['mail']['resend_key'] = (string) getenv('RESEND_API_KEY');
+$config['mail']['from'] = (string) getenv('MAIL_FROM');
 if (getenv('FB_GRAPH_URL')) {
     $config['facebook']['graph_url'] = rtrim((string) getenv('FB_GRAPH_URL'), '/');
 }

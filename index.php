@@ -27,6 +27,10 @@ if ($path === '') {
     page_go((int) $m[1]);
 } elseif (preg_match('#^go/promo/(\d+)$#', $path, $m)) {
     page_go_promo((int) $m[1]);
+} elseif (preg_match('#^alert/(\d+)$#', $path, $m)) {
+    page_alert_signup((int) $m[1]);
+} elseif (preg_match('#^alert/(confirm|stop)$#', $path, $m)) {
+    render('alert', ['message' => alert_handle_link($m[1], (string) ($_GET['t'] ?? '')), 'product' => null]);
 } elseif (preg_match('#^media/breeds/([^/]+\.(?:jpg|png|webp))$#u', $path, $m)) {
     page_media(BREED_PHOTO_DIR, $m[1]);
 } elseif ($path === 'sitemap.xml') {
@@ -297,6 +301,22 @@ function page_go(int $id): void
     header('Location: ' . $product['affiliate_url'], true, 302);
 }
 
+/** Price-alert form on a product page (POST only, same site, honeypot left empty). */
+function page_alert_signup(int $id): void
+{
+    $product = product_get($id);
+    $origin = (string) parse_url((string) ($_SERVER['HTTP_ORIGIN'] ?? $_SERVER['HTTP_REFERER'] ?? ''), PHP_URL_HOST);
+    $ownHost = (string) parse_url('http://' . ($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST);
+    if (!$product || !alerts_enabled() || ($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' || $origin !== $ownHost) {
+        render('404', [], 404);
+        return;
+    }
+    $message = (string) ($_POST['website'] ?? '') !== ''
+        ? 'ส่งลิงก์ยืนยันแล้ว'
+        : alert_signup($product, (string) ($_POST['email'] ?? ''));
+    render('alert', ['message' => $message, 'product' => $product]);
+}
+
 /** Promo banner click: count it, then on to the campaign's affiliate link (also after it ends, for cached pages). */
 function page_go_promo(int $id): void
 {
@@ -366,6 +386,7 @@ function page_robots(): void
     header('Content-Type: text/plain; charset=utf-8');
     echo "User-agent: *\n";
     echo 'Disallow: ' . url('go/') . "\n";
+    echo 'Disallow: ' . url('alert/') . "\n";
     echo 'Disallow: ' . url('admin/') . "\n";
     echo "\nSitemap: " . abs_url('sitemap.xml') . "\n";
 }

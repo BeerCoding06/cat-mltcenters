@@ -140,3 +140,18 @@ CREATE TABLE IF NOT EXISTS share_log (
 );
 CREATE INDEX IF NOT EXISTS idx_share_log_article ON share_log (article_id, shared_at);
 CREATE INDEX IF NOT EXISTS idx_share_log_group ON share_log (group_id, shared_at);
+
+-- Price-drop alerts (product pages): one row per email per product, live once the email link is clicked.
+CREATE TABLE IF NOT EXISTS price_alerts (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_id      INTEGER NOT NULL REFERENCES products (id) ON DELETE CASCADE,
+    email           TEXT    NOT NULL,
+    token           TEXT    NOT NULL UNIQUE,       -- in the confirm / stop links
+    price           REAL    NOT NULL,              -- price when they signed up, lowered each time we send
+    created_at      TEXT    NOT NULL,
+    confirmed_at    TEXT,
+    notified_at     TEXT,
+    stopped_at      TEXT,
+    UNIQUE (product_id, email)
+);
+CREATE INDEX IF NOT EXISTS idx_price_alerts_product ON price_alerts (product_id);

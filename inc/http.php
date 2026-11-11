@@ -53,7 +53,7 @@ function http_get_json(string $url, array $headers = []): array
  * since APIs such as Facebook's explain the problem in the body.
  */
 /** POSTs $payload as a JSON body and returns the HTTP status (the body is not needed by callers). */
-function http_post_raw_json(string $url, array $payload, int $timeout = 20): int
+function http_post_raw_json(string $url, array $payload, int $timeout = 20, array $headers = []): int
 {
     if (!is_http_url($url)) {
         throw new RuntimeException('Not an http(s) URL: ' . $url);
@@ -65,7 +65,7 @@ function http_post_raw_json(string $url, array $payload, int $timeout = 20): int
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_PROTOCOLS      => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         CURLOPT_TIMEOUT        => $timeout,
-        CURLOPT_HTTPHEADER     => ['Content-Type: application/json; charset=utf-8'],
+        CURLOPT_HTTPHEADER     => array_merge(['Content-Type: application/json; charset=utf-8'], $headers),
     ]);
     $body = curl_exec($ch);
     $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);

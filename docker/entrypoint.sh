@@ -7,10 +7,11 @@ su -s /bin/sh www-data -c 'php docker/init.php'
 # New files in content/articles go live by themselves at their publish_at (existing articles are left alone).
 su -s /bin/sh www-data -c 'php bin/import-articles.php --publish' || echo "Article import had errors (see above)"
 # Share articles that go live on the Facebook Page (does nothing until FB_PAGE_TOKEN is set),
-# and tell Bing & co. about them through IndexNow.
+# tell Bing & co. about them through IndexNow, and email price-drop alerts (does nothing until RESEND_API_KEY is set).
 (while true; do
   su -s /bin/sh www-data -c 'php bin/post-facebook.php' || true
   su -s /bin/sh www-data -c 'php bin/indexnow.php' || true
+  su -s /bin/sh www-data -c 'php bin/send-price-alerts.php' || true
   sleep 600
 done) &
 exec "$@"
