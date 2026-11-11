@@ -14,7 +14,16 @@ $coverUrl = article_cover_url($article);
 $ogImage = $coverUrl !== '' ? ($coverUrl[0] === '/' ? abs_url(ltrim($coverUrl, '/')) : $coverUrl) : article_first_product_image($article['body']);
 $ogType = 'article';
 // Shown near the top and in the phone deal bar: the article's own products first, else the category's best deals.
-$topPicks = array_slice($mentioned ?: $deals, 0, 3);
+$topPicks = $mentioned;
+foreach ($deals as $d) {
+    if (count($topPicks) >= 3) {
+        break;
+    }
+    if (!in_array((int) $d['id'], array_map('intval', array_column($topPicks, 'id')), true)) {
+        $topPicks[] = $d;
+    }
+}
+$topPicks = array_slice($topPicks, 0, 3);
 $topSummaries = price_summaries($topPicks);
 $updated = $article['updated_at'];
 $jsonLd = [
@@ -57,33 +66,36 @@ $jsonLd = [
       <span>อัปเดต <?= e(thai_date($updated)) ?></span>
       <span>อ่าน <?= reading_minutes($article['body']) ?> นาที</span>
     </p>
-    <?php if ($article['cover_image'] !== ''): ?>
-      <img class="article-cover photo" src="<?= e($coverUrl) ?>" alt="<?= e($article['title']) ?>" width="1200" height="675" fetchpriority="high" referrerpolicy="no-referrer">
-      <?php if ($credit = article_cover_credit($article)): ?>
-        <p class="article-cover-credit">ภาพ: <a href="<?= e($credit['source']) ?>" rel="nofollow noopener" target="_blank"><?= e($credit['author']) ?> / Unsplash</a></p>
-      <?php endif; ?>
-    <?php endif; ?>
     <p class="disclosure-inline">บทความนี้มีลิงก์ Affiliate — ถ้าซื้อผ่านลิงก์ เราอาจได้ค่าคอมมิชชันเล็กน้อย โดยคุณไม่ต้องจ่ายเพิ่ม</p>
   </header>
 
   <?php if ($topPicks): ?>
   <section class="top-picks" aria-labelledby="top-picks-title">
-    <h2 id="top-picks-title"><?= $mentioned ? 'สินค้าที่แนะนำในบทความนี้' : 'ดีล' . e($article['category']) . 'ที่น่าสนใจ' ?></h2>
+    <h2 id="top-picks-title"><?= $mentioned ? 'ไม่มีเวลาอ่าน? นี่คือของที่เราแนะนำ' : 'ดีล' . e($article['category']) . 'ที่น่าสนใจ' ?></h2>
     <ol class="deal-box-list">
-      <?php foreach ($topPicks as $p): ?>
+      <?php foreach ($topPicks as $i => $p): ?>
         <?php $sum = $topSummaries[(int) $p['id']]; ?>
-        <li>
+        <li<?= $i === 0 && $mentioned ? ' class="is-first"' : '' ?>>
           <a class="deal-box-media" href="<?= e(product_link($p)) ?>" tabindex="-1">
             <?php if ($p['image_url'] !== ''): ?><img src="<?= e(image_thumb($p['image_url'])) ?>" alt="<?= e($p['name']) ?>" width="64" height="64" referrerpolicy="no-referrer"><?php endif; ?>
           </a>
-          <span class="deal-box-name"><a href="<?= e(product_link($p)) ?>"><?= e($p['name']) ?></a>
+          <span class="deal-box-name"><?php if ($i === 0 && $mentioned): ?><span class="pick-tag">แนะนำ</span><?php endif; ?><a href="<?= e(product_link($p)) ?>"><?= e($p['name']) ?></a>
             <span class="deal-box-price"><?= e(baht($p['price'])) ?><?php if ((int) $p['discount'] > 0): ?> <small>-<?= (int) $p['discount'] ?>%</small><?php endif; ?></span>
+            <?php $facts = array_filter([(float) $p['rating'] > 0 ? '★ ' . number_format((float) $p['rating'], 1) : '', (int) $p['sold'] > 0 ? 'ขายแล้ว ' . number_format((int) $p['sold']) : '']); ?>
+            <?php if ($facts): ?><span class="deal-box-meta"><?= e(implode(' · ', $facts)) ?></span><?php endif; ?>
             <?php if ($sum['is_lowest']): ?><span class="deal-box-low best">ราคาต่ำสุดใน 30 วัน</span><?php endif; ?></span>
-          <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูดีล</a>
+          <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูใน <?= e(PLATFORMS[$p['platform']]) ?></a>
         </li>
       <?php endforeach; ?>
     </ol>
   </section>
+  <?php endif; ?>
+
+  <?php if ($article['cover_image'] !== ''): ?>
+    <img class="article-cover photo" src="<?= e($coverUrl) ?>" alt="<?= e($article['title']) ?>" width="1200" height="675" fetchpriority="high" referrerpolicy="no-referrer">
+    <?php if ($credit = article_cover_credit($article)): ?>
+      <p class="article-cover-credit">ภาพ: <a href="<?= e($credit['source']) ?>" rel="nofollow noopener" target="_blank"><?= e($credit['author']) ?> / Unsplash</a></p>
+    <?php endif; ?>
   <?php endif; ?>
 
   <?php require APP_ROOT . '/views/partials/promo-banners.php'; ?>
@@ -130,7 +142,7 @@ $jsonLd = [
             <?php elseif ($sum['max'] > $sum['min'] + 0.009): ?>
               <span class="deal-box-low">30 วันที่ผ่านมา <?= e(baht($sum['min'])) ?>–<?= e(baht($sum['max'])) ?></span>
             <?php endif; ?></span>
-          <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูดีล</a>
+          <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูใน <?= e(PLATFORMS[$p['platform']]) ?></a>
         </li>
       <?php endforeach; ?>
     </ol>
@@ -152,7 +164,7 @@ $jsonLd = [
   <aside class="sticky-deal" aria-label="ดีลแนะนำ">
     <span class="sticky-deal-text"><span class="sticky-deal-name"><?= e($p['name']) ?></span>
       <strong><?= e(baht($p['price'])) ?></strong><?php if ($topSummaries[(int) $p['id']]['is_lowest']): ?> <small>ถูกสุดใน 30 วัน</small><?php endif; ?></span>
-    <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูดีล</a>
+    <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูใน <?= e(PLATFORMS[$p['platform']]) ?></a>
   </aside>
 <?php endif; ?>
 

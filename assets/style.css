@@ -710,6 +710,13 @@ img.photo { display: block; width: 100%; height: 100%; object-fit: cover; backgr
 .top-picks { margin: 18px 0 22px; padding: 14px 16px; border-radius: var(--radius); background: var(--cream-deep); border: 2px solid var(--ginger); }
 .top-picks h2 { margin: 0 0 10px; font-size: 1.1rem; }
 .top-picks .deal-box-list { margin: 0; }
+.top-picks .is-first { box-shadow: inset 0 0 0 2px var(--accent); }
+.pick-tag { align-self: flex-start; padding: 1px 8px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-size: .72rem; font-weight: 700; }
+.deal-box-meta { font-size: .78rem; color: var(--muted); }
+@media (max-width: 520px) {
+  .deal-box-list li { grid-template-columns: 64px minmax(0, 1fr); row-gap: 8px; }
+  .deal-box-list .btn { grid-column: 1 / -1; text-align: center; }
+}
 /* Phones: a compact deal pill beside the 🐾 button, so the main pick is always one tap away while reading. */
 .sticky-deal { display: none; }
 @media (max-width: 760px) {

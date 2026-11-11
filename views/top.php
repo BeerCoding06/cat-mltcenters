@@ -52,7 +52,7 @@ $jsonLd = [
         </div>
       </div>
       <div class="top-actions">
-        <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูดีลที่ <?= e(PLATFORMS[$p['platform']]) ?></a>
+        <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูราคาล่าสุดใน <?= e(PLATFORMS[$p['platform']]) ?></a>
         <a class="top-history" href="<?= e(product_link($p)) ?>">ดูประวัติราคา</a>
       </div>
     </li>

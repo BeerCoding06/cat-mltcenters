@@ -35,6 +35,6 @@
       <?php if ((float) $p['rating'] > 0): ?><span>★ <?= e(number_format((float) $p['rating'], 1)) ?></span><?php endif; ?>
       <?php if ((int) $p['sold'] > 0): ?><span>ขายแล้ว <?= e(number_format((int) $p['sold'])) ?></span><?php endif; ?>
     </div>
-    <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูดีลที่ <?= e(PLATFORMS[$p['platform']]) ?></a>
+    <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูราคาล่าสุดใน <?= e(PLATFORMS[$p['platform']]) ?></a>
   </div>
 </article>
