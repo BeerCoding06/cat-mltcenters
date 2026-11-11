@@ -35,7 +35,9 @@ CREATE TABLE IF NOT EXISTS clicks (
     product_id   INTEGER NOT NULL REFERENCES products (id) ON DELETE CASCADE,
     clicked_at   TEXT    NOT NULL,
     visitor_hash TEXT    NOT NULL,                 -- salted daily hash, no raw IP stored
-    referer      TEXT    NOT NULL DEFAULT ''
+    referer      TEXT    NOT NULL DEFAULT '',
+    placement    TEXT    NOT NULL DEFAULT '',      -- top / body / summary / sticky / card / … (?at= on the link)
+    suspect      INTEGER NOT NULL DEFAULT 0        -- 1 = left out of reports: no page it came from, or a burst
 );
 CREATE INDEX IF NOT EXISTS idx_clicks_product ON clicks (product_id, clicked_at);
 CREATE INDEX IF NOT EXISTS idx_clicks_time ON clicks (clicked_at);
@@ -116,6 +118,8 @@ CREATE TABLE IF NOT EXISTS promo_clicks (
     promo_id     INTEGER NOT NULL REFERENCES promos (id) ON DELETE CASCADE,
     clicked_at   TEXT    NOT NULL,
     visitor_hash TEXT    NOT NULL,                 -- salted daily hash, no raw IP stored
-    referer      TEXT    NOT NULL DEFAULT ''
+    referer      TEXT    NOT NULL DEFAULT '',
+    placement    TEXT    NOT NULL DEFAULT '',      -- top / body / summary / sticky / card / … (?at= on the link)
+    suspect      INTEGER NOT NULL DEFAULT 0        -- 1 = left out of reports: no page it came from, or a burst
 );
 CREATE INDEX IF NOT EXISTS idx_promo_clicks_promo ON promo_clicks (promo_id, clicked_at);

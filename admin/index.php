@@ -163,9 +163,9 @@ function action_dashboard(): void
     $d30 = date('Y-m-d 00:00:00', strtotime('-29 days'));
 
     $stats = [
-        'วันนี้'     => db_one('SELECT COUNT(*) AS clicks, COUNT(DISTINCT visitor_hash) AS visitors FROM clicks WHERE clicked_at >= ?', [$today]),
-        '7 วัน'     => db_one('SELECT COUNT(*) AS clicks, COUNT(DISTINCT visitor_hash) AS visitors FROM clicks WHERE clicked_at >= ?', [$d7]),
-        '30 วัน'    => db_one('SELECT COUNT(*) AS clicks, COUNT(DISTINCT visitor_hash) AS visitors FROM clicks WHERE clicked_at >= ?', [$d30]),
+        'วันนี้'     => db_one('SELECT COUNT(*) AS clicks, COUNT(DISTINCT visitor_hash) AS visitors FROM clicks WHERE suspect = 0 AND clicked_at >= ?', [$today]),
+        '7 วัน'     => db_one('SELECT COUNT(*) AS clicks, COUNT(DISTINCT visitor_hash) AS visitors FROM clicks WHERE suspect = 0 AND clicked_at >= ?', [$d7]),
+        '30 วัน'    => db_one('SELECT COUNT(*) AS clicks, COUNT(DISTINCT visitor_hash) AS visitors FROM clicks WHERE suspect = 0 AND clicked_at >= ?', [$d30]),
     ];
     $productCount = db_one('SELECT COUNT(*) AS total, SUM(active) AS active FROM products');
 
@@ -185,7 +185,7 @@ function action_dashboard(): void
                          FROM visits WHERE day >= ? GROUP BY 1 ORDER BY n DESC LIMIT 10", [date('Y-m-d', strtotime('-6 days'))]);
     // Share of visitors who went on to a shop (visits and clicks share the same daily visitor hash), and Google week on week.
     $visitorsWeek = (int) db_value('SELECT COUNT(*) FROM visits WHERE day >= ?', [date('Y-m-d', strtotime('-6 days'))]);
-    $clickersWeek = (int) db_value('SELECT COUNT(DISTINCT substr(clicked_at, 1, 10) || visitor_hash) FROM clicks WHERE clicked_at >= ?', [$d7]);
+    $clickersWeek = (int) db_value('SELECT COUNT(DISTINCT substr(clicked_at, 1, 10) || visitor_hash) FROM clicks WHERE suspect = 0 AND clicked_at >= ?', [$d7]);
     $clickRate = $visitorsWeek > 0 ? $clickersWeek / $visitorsWeek * 100 : 0.0;
     $googleWeek = (int) db_value("SELECT COUNT(*) FROM visits WHERE source = 'Google' AND day >= ?", [date('Y-m-d', strtotime('-6 days'))]);
     $googlePrev = (int) db_value("SELECT COUNT(*) FROM visits WHERE source = 'Google' AND day >= ? AND day < ?",
@@ -194,7 +194,7 @@ function action_dashboard(): void
                        [date('Y-m-d', strtotime('-6 days'))]);
 
     $daily = [];
-    foreach (db_all('SELECT substr(clicked_at, 1, 10) AS day, COUNT(*) AS n FROM clicks WHERE clicked_at >= ? GROUP BY day', [date('Y-m-d 00:00:00', strtotime('-13 days'))]) as $row) {
+    foreach (db_all('SELECT substr(clicked_at, 1, 10) AS day, COUNT(*) AS n FROM clicks WHERE suspect = 0 AND clicked_at >= ? GROUP BY day', [date('Y-m-d 00:00:00', strtotime('-13 days'))]) as $row) {
         $daily[$row['day']] = (int) $row['n'];
     }
     $days = [];
@@ -207,13 +207,13 @@ function action_dashboard(): void
     $top = db_all(
         'SELECT p.id, p.name, p.platform, p.slug, COUNT(c.id) AS clicks
            FROM clicks c JOIN products p ON p.id = c.product_id
-          WHERE c.clicked_at >= ?
+          WHERE c.suspect = 0 AND c.clicked_at >= ?
           GROUP BY p.id ORDER BY clicks DESC LIMIT 10',
         [$d30]
     );
     $referers = db_all(
         "SELECT CASE WHEN referer = '' THEN '(ไม่ทราบ)' ELSE referer END AS source, COUNT(*) AS n
-           FROM clicks WHERE clicked_at >= ? GROUP BY source ORDER BY n DESC LIMIT 8",
+           FROM clicks WHERE suspect = 0 AND clicked_at >= ? GROUP BY source ORDER BY n DESC LIMIT 8",
         [$d30]
     );
 
@@ -434,7 +434,7 @@ function action_products(): void
     }
     $products = db_all(
         'SELECT p.*, ' . discount_sql() . " AS discount,
-                (SELECT COUNT(*) FROM clicks c WHERE c.product_id = p.id AND c.clicked_at >= ?) AS clicks30
+                (SELECT COUNT(*) FROM clicks c WHERE c.product_id = p.id AND c.suspect = 0 AND c.clicked_at >= ?) AS clicks30
            FROM products p $where ORDER BY p.id DESC LIMIT 500",
         $params
     );
@@ -842,8 +842,8 @@ function action_promos(): void
     }
 
     $since = date('Y-m-d H:i:s', strtotime('-7 days'));
-    $promos = db_all('SELECT p.*, (SELECT COUNT(*) FROM promo_clicks c WHERE c.promo_id = p.id) AS clicks,
-                             (SELECT COUNT(*) FROM promo_clicks c WHERE c.promo_id = p.id AND c.clicked_at >= ?) AS clicks_7d
+    $promos = db_all('SELECT p.*, (SELECT COUNT(*) FROM promo_clicks c WHERE c.promo_id = p.id AND c.suspect = 0) AS clicks,
+                             (SELECT COUNT(*) FROM promo_clicks c WHERE c.promo_id = p.id AND c.suspect = 0 AND c.clicked_at >= ?) AS clicks_7d
                       FROM promos p ORDER BY p.ends_at DESC', [$since]);
     $v = function ($key) use ($values) {
         return e($values[$key] ?? '');
@@ -936,6 +936,13 @@ function click_source_type(string $referer): string
     return $path === '/' ? 'หน้าแรก' : 'อื่นๆ';
 }
 
+/** Where on a page a shop link sat (?at= on /go/ links). */
+const CLICK_PLACEMENTS = [
+    'top' => 'กล่องแนะนำต้นบทความ', 'body' => 'การ์ดในเนื้อบทความ', 'summary' => 'กล่องสรุปท้ายบทความ',
+    'sticky' => 'แถบดีลล่างจอ (มือถือ)', 'card' => 'การ์ดสินค้า (หน้ารวม/หมวด)', 'rank' => 'หน้าจัดอันดับ',
+    'product' => 'ปุ่มหลักหน้าสินค้า', 'compare' => 'ตารางเทียบราคา', 'promo' => 'แบนเนอร์โปร',
+];
+
 /** Click report: where buyers click from, which articles earn clicks, which products and banners get them. */
 function action_clicks(): void
 {
@@ -943,18 +950,24 @@ function action_clicks(): void
     $days = in_array($days, [7, 30, 90], true) ? $days : 30;
     $since = date('Y-m-d 00:00:00', strtotime('-' . ($days - 1) . ' days'));
 
-    $all = db_all("SELECT referer, 'product' AS kind FROM clicks WHERE clicked_at >= ?
-                   UNION ALL SELECT referer, 'promo' FROM promo_clicks WHERE clicked_at >= ?", [$since, $since]);
+    $all = db_all("SELECT referer, placement, 'product' AS kind FROM clicks WHERE suspect = 0 AND clicked_at >= ?
+                   UNION ALL SELECT referer, placement, 'promo' FROM promo_clicks WHERE suspect = 0 AND clicked_at >= ?", [$since, $since]);
     $byType = [];
+    $byPlace = [];
     foreach ($all as $row) {
         $type = click_source_type($row['referer']);
         $byType[$type] = ($byType[$type] ?? 0) + 1;
+        $place = CLICK_PLACEMENTS[$row['placement']] ?? 'ไม่ทราบ (ก่อนเริ่มเก็บ)';
+        $byPlace[$place] = ($byPlace[$place] ?? 0) + 1;
     }
     arsort($byType);
+    arsort($byPlace);
+    $suspect = (int) db_value('SELECT (SELECT COUNT(*) FROM clicks WHERE suspect = 1 AND clicked_at >= ?)
+                                    + (SELECT COUNT(*) FROM promo_clicks WHERE suspect = 1 AND clicked_at >= ?)', [$since, $since]);
     $total = count($all);
     $promoTotal = count(array_filter($all, function ($r) { return $r['kind'] === 'promo'; }));
-    $visitors = (int) db_value('SELECT COUNT(DISTINCT visitor_hash) FROM (SELECT visitor_hash FROM clicks WHERE clicked_at >= ?
-                                UNION ALL SELECT visitor_hash FROM promo_clicks WHERE clicked_at >= ?)', [$since, $since]);
+    $visitors = (int) db_value('SELECT COUNT(DISTINCT visitor_hash) FROM (SELECT visitor_hash FROM clicks WHERE suspect = 0 AND clicked_at >= ?
+                                UNION ALL SELECT visitor_hash FROM promo_clicks WHERE suspect = 0 AND clicked_at >= ?)', [$since, $since]);
 
     // Articles: clicks counted by the article page they came from; live articles with no clicks show at the bottom.
     $articleClicks = [];
@@ -971,13 +984,13 @@ function action_clicks(): void
     usort($articles, function ($x, $y) { return $y['clicks'] <=> $x['clicks'] ?: strcmp((string) $y['published_at'], (string) $x['published_at']); });
 
     $products = db_all('SELECT p.id, p.name, p.slug, p.category, COUNT(c.id) AS clicks, COUNT(DISTINCT c.visitor_hash) AS people
-                          FROM clicks c JOIN products p ON p.id = c.product_id WHERE c.clicked_at >= ?
+                          FROM clicks c JOIN products p ON p.id = c.product_id WHERE c.suspect = 0 AND c.clicked_at >= ?
                          GROUP BY p.id ORDER BY clicks DESC LIMIT 20', [$since]);
     $categories = db_all("SELECT CASE WHEN p.category = '' THEN '(ไม่มีหมวด)' ELSE p.category END AS category, COUNT(c.id) AS clicks
-                            FROM clicks c JOIN products p ON p.id = c.product_id WHERE c.clicked_at >= ?
+                            FROM clicks c JOIN products p ON p.id = c.product_id WHERE c.suspect = 0 AND c.clicked_at >= ?
                            GROUP BY 1 ORDER BY clicks DESC", [$since]);
     $promos = db_all('SELECT p.id, p.title, COUNT(c.id) AS clicks FROM promo_clicks c JOIN promos p ON p.id = c.promo_id
-                       WHERE c.clicked_at >= ? GROUP BY p.id ORDER BY clicks DESC', [$since]);
+                       WHERE c.suspect = 0 AND c.clicked_at >= ? GROUP BY p.id ORDER BY clicks DESC', [$since]);
     $bar = function ($n, $max) {
         return '<span class="report-bar"><i style="width:' . ($max > 0 ? round($n / $max * 100) : 0) . '%"></i></span>';
     };
@@ -1010,6 +1023,16 @@ function action_clicks(): void
             <tr><td><?= e($type) ?></td><td class="report-cell"><?= $bar($n, $max) ?></td><td class="num"><?= number_format($n) ?></td></tr>
           <?php endforeach; ?>
           <?php if (!$byType): ?><tr><td class="muted">ยังไม่มีคลิกในช่วงนี้</td></tr><?php endif; ?>
+        </table>
+      </section>
+      <section class="panel">
+        <h2>กดจากตรงไหนของหน้า</h2>
+        <table class="table">
+          <?php $max = $byPlace ? max($byPlace) : 0; ?>
+          <?php foreach ($byPlace as $place => $n): ?>
+            <tr><td><?= e($place) ?></td><td class="report-cell"><?= $bar($n, $max) ?></td><td class="num"><?= number_format($n) ?></td></tr>
+          <?php endforeach; ?>
+          <?php if (!$byPlace): ?><tr><td class="muted">ยังไม่มีคลิกในช่วงนี้</td></tr><?php endif; ?>
         </table>
       </section>
       <section class="panel">
@@ -1067,7 +1090,8 @@ function action_clicks(): void
         </tbody>
       </table>
     </section>
-    <p class="muted small">ยอดนี้คือคนที่กดไปร้านค้า ยอดสั่งซื้อและค่าคอมจริงดูได้ที่ Shopee Affiliate › รายงาน · ไม่นับบอทและไม่เก็บ IP</p>
+    <p class="muted small">ยอดนี้คือคนที่กดไปร้านค้า ยอดสั่งซื้อและค่าคอมจริงดูได้ที่ Shopee Affiliate › รายงาน · ไม่นับบอทและไม่เก็บ IP
+      <?php if ($suspect): ?> · ไม่นับอีก <?= number_format($suspect) ?> คลิกที่ไม่ได้กดจากหน้าเว็บเรา หรือคนเดียวกดเกิน <?= CLICK_DAILY_LIMIT ?> ครั้งต่อวัน (น่าจะเป็นสคริปต์หรือการทดสอบ)<?php endif; ?></p>
     <?php
     admin_footer();
 }

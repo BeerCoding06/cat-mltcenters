@@ -1,6 +1,6 @@
 <?php
 
-const SCHEMA_VERSION = 11;
+const SCHEMA_VERSION = 12;
 
 /** Changes to tables that already exist; new tables just go in schema.sql. Keyed by the version they bring the DB to. */
 const MIGRATIONS = [
@@ -27,6 +27,15 @@ const MIGRATIONS = [
     ],
     11 => [
         'ALTER TABLE articles ADD COLUMN indexnow_at TEXT',
+    ],
+    // Where on the page a click came from, and clicks left out of reports (no page to come from, or a burst).
+    12 => [
+        "ALTER TABLE clicks ADD COLUMN placement TEXT NOT NULL DEFAULT ''",
+        'ALTER TABLE clicks ADD COLUMN suspect INTEGER NOT NULL DEFAULT 0',
+        "ALTER TABLE promo_clicks ADD COLUMN placement TEXT NOT NULL DEFAULT ''",
+        'ALTER TABLE promo_clicks ADD COLUMN suspect INTEGER NOT NULL DEFAULT 0',
+        "UPDATE clicks SET suspect = 1 WHERE referer = ''",
+        "UPDATE promo_clicks SET suspect = 1 WHERE referer = ''",
     ],
 ];
 

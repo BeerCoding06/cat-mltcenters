@@ -23,9 +23,16 @@ function product_link(array $product): string
     return url('p/' . rawurlencode($product['slug']));
 }
 
-function product_go_link(array $product): string
+/** Shop link through /go/, carrying the page it sits on and where on that page ($at), since browsers may drop the Referer. */
+function product_go_link(array $product, string $at = ''): string
 {
-    return url('go/' . (int) $product['id']);
+    return url('go/' . (int) $product['id']) . click_origin_query($at);
+}
+
+function click_origin_query(string $at): string
+{
+    $from = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+    return '?' . http_build_query(array_filter(['f' => $from, 'at' => $at]));
 }
 
 function category_link(string $category): string
@@ -218,10 +225,36 @@ function log_click(array $product): void
     if (!is_human_request()) {
         return;
     }
+    list($from, $at) = click_origin();
+    $hash = visitor_hash();
     db_run(
-        'INSERT INTO clicks (product_id, clicked_at, visitor_hash, referer) VALUES (?, ?, ?, ?)',
-        [$product['id'], now(), visitor_hash(), click_referer()]
+        'INSERT INTO clicks (product_id, clicked_at, visitor_hash, referer, placement, suspect) VALUES (?, ?, ?, ?, ?, ?)',
+        [$product['id'], now(), $hash, $from, $at, click_is_suspect('clicks', $from, $hash)]
     );
+}
+
+/** One visitor clicking more than this many shop links in a day is a script or someone testing, not a shopper. */
+const CLICK_DAILY_LIMIT = 20;
+
+/** [page the click came from, place on that page]: ?f= and ?at= from our own links, else the Referer. */
+function click_origin(): array
+{
+    $from = rawurldecode((string) ($_GET['f'] ?? ''));
+    if ($from === '' || $from[0] !== '/' || strpos($from, '//') !== false) {
+        $from = click_referer();
+    }
+    $at = substr((string) preg_replace('/[^a-z-]/', '', strtolower((string) ($_GET['at'] ?? ''))), 0, 20);
+    return [mb_substr($from, 0, 200), $at];
+}
+
+/** 1 when a click should stay out of the reports: it came from no page at all, or the visitor is over the daily limit. */
+function click_is_suspect(string $table, string $from, string $hash): int
+{
+    if ($from === '') {
+        return 1;
+    }
+    $today = (int) db_value("SELECT COUNT(*) FROM $table WHERE visitor_hash = ? AND clicked_at >= ?", [$hash, date('Y-m-d 00:00:00')]);
+    return $today >= CLICK_DAILY_LIMIT ? 1 : 0;
 }
 
 /** Where a click came from (host, or path for our own pages) — never full query strings. */

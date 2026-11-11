@@ -69,7 +69,7 @@ if ($product['image_url'] !== '') {
       <span>อัปเดต <?= e(thai_date($product['updated_at'])) ?></span>
     </div>
 
-    <a class="btn btn-deal btn-lg" href="<?= e(product_go_link($product)) ?>" rel="sponsored nofollow noopener" target="_blank">ไปที่ร้านค้าบน <?= e($platformLabel) ?> →</a>
+    <a class="btn btn-deal btn-lg" href="<?= e(product_go_link($product, 'product')) ?>" rel="sponsored nofollow noopener" target="_blank">ไปที่ร้านค้าบน <?= e($platformLabel) ?> →</a>
     <p class="fine">ราคาอาจเปลี่ยนแปลง โปรดตรวจสอบราคาบนหน้าร้านก่อนสั่งซื้อ</p>
     <?php
     $shareUrl = $canonical;
@@ -107,7 +107,7 @@ if ($product['image_url'] !== '') {
         <td><span class="platform platform-<?= e($c['platform']) ?>"><?= e(PLATFORMS[$c['platform']]) ?></span></td>
         <td><a href="<?= e(product_link($c)) ?>"><?= e($c['name']) ?></a></td>
         <td class="num"><?= e(baht($c['price'])) ?></td>
-        <td><a class="btn btn-small" href="<?= e(product_go_link($c)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูดีล</a></td>
+        <td><a class="btn btn-small" href="<?= e(product_go_link($c, 'compare')) ?>" rel="sponsored nofollow noopener" target="_blank">ดูดีล</a></td>
       </tr>
       <?php endforeach; ?>
     </tbody>

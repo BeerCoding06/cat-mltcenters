@@ -84,7 +84,7 @@ $jsonLd = [
             <?php $facts = array_filter([(float) $p['rating'] > 0 ? '★ ' . number_format((float) $p['rating'], 1) : '', (int) $p['sold'] > 0 ? 'ขายแล้ว ' . number_format((int) $p['sold']) : '']); ?>
             <?php if ($facts): ?><span class="deal-box-meta"><?= e(implode(' · ', $facts)) ?></span><?php endif; ?>
             <?php if ($sum['is_lowest']): ?><span class="deal-box-low best">ราคาต่ำสุดใน 30 วัน</span><?php endif; ?></span>
-          <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูใน <?= e(PLATFORMS[$p['platform']]) ?></a>
+          <a class="btn btn-deal" href="<?= e(product_go_link($p, 'top')) ?>" rel="sponsored nofollow noopener" target="_blank">ดูใน <?= e(PLATFORMS[$p['platform']]) ?></a>
         </li>
       <?php endforeach; ?>
     </ol>
@@ -142,7 +142,7 @@ $jsonLd = [
             <?php elseif ($sum['max'] > $sum['min'] + 0.009): ?>
               <span class="deal-box-low">30 วันที่ผ่านมา <?= e(baht($sum['min'])) ?>–<?= e(baht($sum['max'])) ?></span>
             <?php endif; ?></span>
-          <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูใน <?= e(PLATFORMS[$p['platform']]) ?></a>
+          <a class="btn btn-deal" href="<?= e(product_go_link($p, 'summary')) ?>" rel="sponsored nofollow noopener" target="_blank">ดูใน <?= e(PLATFORMS[$p['platform']]) ?></a>
         </li>
       <?php endforeach; ?>
     </ol>
@@ -164,7 +164,7 @@ $jsonLd = [
   <aside class="sticky-deal" aria-label="ดีลแนะนำ">
     <span class="sticky-deal-text"><span class="sticky-deal-name"><?= e($p['name']) ?></span>
       <strong><?= e(baht($p['price'])) ?></strong><?php if ($topSummaries[(int) $p['id']]['is_lowest']): ?> <small>ถูกสุดใน 30 วัน</small><?php endif; ?></span>
-    <a class="btn btn-deal" href="<?= e(product_go_link($p)) ?>" rel="sponsored nofollow noopener" target="_blank">ดูใน <?= e(PLATFORMS[$p['platform']]) ?></a>
+    <a class="btn btn-deal" href="<?= e(product_go_link($p, 'sticky')) ?>" rel="sponsored nofollow noopener" target="_blank">ดูใน <?= e(PLATFORMS[$p['platform']]) ?></a>
   </aside>
 <?php endif; ?>
 

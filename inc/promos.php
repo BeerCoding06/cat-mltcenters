@@ -21,7 +21,7 @@ function promo_get(int $id)
 
 function promo_link(array $promo): string
 {
-    return url('go/promo/' . (int) $promo['id']);
+    return url('go/promo/' . (int) $promo['id']) . click_origin_query('promo');
 }
 
 function promo_is_live(array $promo): bool
@@ -90,6 +90,8 @@ function log_promo_click(array $promo): void
     if (!is_human_request()) {
         return;
     }
-    db_run('INSERT INTO promo_clicks (promo_id, clicked_at, visitor_hash, referer) VALUES (?, ?, ?, ?)',
-        [$promo['id'], now(), visitor_hash(), click_referer()]);
+    list($from, $at) = click_origin();
+    $hash = visitor_hash();
+    db_run('INSERT INTO promo_clicks (promo_id, clicked_at, visitor_hash, referer, placement, suspect) VALUES (?, ?, ?, ?, ?, ?)',
+        [$promo['id'], now(), $hash, $from, $at, click_is_suspect('promo_clicks', $from, $hash)]);
 }
