@@ -484,10 +484,20 @@
   "author": "Connor O'Reilly",
   "source": "https://unsplash.com/photos/calico-cat-sits-by-an-empty-food-bowl-fhOt4Lhq8-A"
  },
+ "kaniva-vs-me-o-dry-food": {
+  "image": "/assets/img/articles/kaniva-vs-me-o-dry-food.webp",
+  "author": "Quan Jing",
+  "source": "https://unsplash.com/photos/two-cats-eating-from-a-shared-bowl-6PAznnYU-UY"
+ },
  "kasty-tofu-litter-guide": {
   "image": "/assets/img/articles/kasty-tofu-litter-guide.webp",
   "author": "Dušan veverkolog",
   "source": "https://unsplash.com/photos/short-fur-beige-and-brown-cat-near-green-wall-k9CJkf25vbs"
+ },
+ "kasty-vs-pramy-tofu-litter": {
+  "image": "/assets/img/articles/kasty-vs-pramy-tofu-litter.webp",
+  "author": "Zemos",
+  "source": "https://unsplash.com/photos/pile-of-small-light-brown-granular-material-on-black-5-LBYIucVGM"
  },
  "kitten-care-1-3-months": {
   "image": "/assets/img/articles/kitten-care-1-3-months.webp",
@@ -548,6 +558,11 @@
   "image": "/assets/img/articles/me-o-cat-food-guide.webp",
   "author": "Zhen Yao",
   "source": "https://unsplash.com/photos/a-fluffy-golden-cat-eating-from-a-metal-bowl-_CqTK-GE3lo"
+ },
+ "me-o-vs-whiskas-dry-food": {
+  "image": "/assets/img/articles/me-o-vs-whiskas-dry-food.webp",
+  "author": "Hongjin Wang",
+  "source": "https://unsplash.com/photos/a-small-orange-cat-eating-kibble-from-a-white-dish-vKIfGqmPBro"
  },
  "moving-house-with-cat": {
   "image": "/assets/img/articles/moving-house-with-cat.webp",
@@ -628,6 +643,11 @@
   "image": "/assets/img/articles/royal-canin-guide.webp",
   "author": "Rafael Rodrigues",
   "source": "https://unsplash.com/photos/close-up-of-dry-pet-food-kibble-TdSLxJC8Oz8"
+ },
+ "royal-canin-vs-kaniva": {
+  "image": "/assets/img/articles/royal-canin-vs-kaniva.webp",
+  "author": "Connor O'Reilly",
+  "source": "https://unsplash.com/photos/a-calico-cat-with-green-eyes-sits-near-a-bowl-TQArFZ9Q6SI"
  },
  "senior-cat-food-guide": {
   "image": "/assets/img/articles/senior-cat-food-guide.webp",
