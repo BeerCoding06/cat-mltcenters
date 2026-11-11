@@ -69,6 +69,12 @@ $jsonLd = [
     <p class="disclosure-inline">บทความนี้มีลิงก์ Affiliate — ถ้าซื้อผ่านลิงก์ เราอาจได้ค่าคอมมิชชันเล็กน้อย โดยคุณไม่ต้องจ่ายเพิ่ม</p>
   </header>
 
+  <?php if ($campaign = campaign_next()): ?>
+    <a class="campaign-strip article-campaign" href="<?= e(campaign_link($campaign)) ?>">
+      <?= $campaign['state'] === 'live' ? '🛒 วันนี้โปร ' . e($campaign['name']) . ' แล้ว' : '⏰ อีก ' . (int) $campaign['days_left'] . ' วันถึงโปร ' . e($campaign['name']) ?> · ดูดีลของแมวที่ควรตุน →
+    </a>
+  <?php endif; ?>
+
   <?php if ($topPicks): ?>
   <section class="top-picks" aria-labelledby="top-picks-title">
     <h2 id="top-picks-title"><?= $mentioned ? 'ไม่มีเวลาอ่าน? นี่คือของที่เราแนะนำ' : 'ดีล' . e($article['category']) . 'ที่น่าสนใจ' ?></h2>
