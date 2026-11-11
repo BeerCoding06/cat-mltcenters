@@ -71,7 +71,6 @@ function facebook_post_due(): array
     if (!$due) {
         return $result;
     }
-    $fb = (array) config('facebook');
     try {
         list($page, $error) = facebook_page();
     } catch (Throwable $ex) {
@@ -83,29 +82,58 @@ function facebook_post_due(): array
     }
     $result['page'] = $page['name'];
     foreach ($due as $article) {
-        try {
-            list($status, $data) = http_post_json(rtrim($fb['graph_url'], '/') . '/me/feed', [
-                'message'      => facebook_message($article),
-                'link'         => abs_url('a/' . rawurlencode($article['slug'])),
-                'access_token' => $fb['page_token'],
-            ]);
-        } catch (Throwable $ex) {
-            $status = 0;
-            $data = ['error' => ['message' => $ex->getMessage()]];
-        }
-        if ($status === 200 && !empty($data['id'])) {
-            db_run('UPDATE articles SET fb_post_id = ?, fb_posted_at = ?, fb_error = NULL WHERE id = ?', [$data['id'], now(), $article['id']]);
+        list($error, $badToken) = facebook_send($article);
+        if ($error === null) {
             $result['posted'][] = $article['slug'];
             continue;
         }
-        // Never keep the token in logs: Facebook's messages do not echo it, but trim them anyway.
-        $message = mb_substr((string) ($data['error']['message'] ?? ('HTTP ' . $status)), 0, 300);
-        db_run('UPDATE articles SET fb_error = ? WHERE id = ?', [$message, $article['id']]);
-        $result['errors'][$article['slug']] = $message;
-        if ((int) ($data['error']['code'] ?? 0) === 190 || $status === 401) {
-            $result['stopped'] = 'token ใช้ไม่ได้หรือหมดอายุ — สร้าง Page Access Token ใหม่แล้วใส่ใน FB_PAGE_TOKEN';
+        $result['errors'][$article['slug']] = $error;
+        if ($badToken) {
+            $result['stopped'] = FACEBOOK_BAD_TOKEN;
             break;
         }
     }
     return $result;
+}
+
+const FACEBOOK_BAD_TOKEN = 'token ใช้ไม่ได้หรือหมดอายุ — สร้าง Page Access Token ใหม่แล้วใส่ใน FB_PAGE_TOKEN';
+
+/**
+ * Posts one article to the Page and records the outcome on the article.
+ * Returns [error|null, token is invalid].
+ */
+function facebook_send(array $article): array
+{
+    $fb = (array) config('facebook');
+    try {
+        list($status, $data) = http_post_json(rtrim($fb['graph_url'], '/') . '/me/feed', [
+            'message'      => facebook_message($article),
+            'link'         => abs_url('a/' . rawurlencode($article['slug'])),
+            'access_token' => $fb['page_token'],
+        ]);
+    } catch (Throwable $ex) {
+        $status = 0;
+        $data = ['error' => ['message' => $ex->getMessage()]];
+    }
+    if ($status === 200 && !empty($data['id'])) {
+        db_run('UPDATE articles SET fb_post_id = ?, fb_posted_at = ?, fb_error = NULL WHERE id = ?', [$data['id'], now(), $article['id']]);
+        return [null, false];
+    }
+    // Never keep the token in logs: Facebook's messages do not echo it, but trim them anyway.
+    $message = mb_substr((string) ($data['error']['message'] ?? ('HTTP ' . $status)), 0, 300);
+    db_run('UPDATE articles SET fb_error = ? WHERE id = ?', [$message, $article['id']]);
+    return [$message, (int) ($data['error']['code'] ?? 0) === 190 || $status === 401];
+}
+
+/** Posts a live article again right away (after the owner deleted its Page post). Returns an error or null. */
+function facebook_post_article(array $article): ?string
+{
+    if (!facebook_configured()) {
+        return 'ยังไม่ได้ตั้งค่า FB_PAGE_TOKEN';
+    }
+    if (!article_is_live($article)) {
+        return 'บทความนี้ยังไม่เผยแพร่';
+    }
+    list($error, $badToken) = facebook_send($article);
+    return $badToken ? FACEBOOK_BAD_TOKEN : $error;
 }

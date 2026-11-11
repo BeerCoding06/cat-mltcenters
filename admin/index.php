@@ -96,6 +96,16 @@ switch ($action) {
         flash($result['stopped'] ?: 'โพสต์ลงเพจแล้ว ' . count($result['posted']) . ' บทความ' . ($result['errors'] ? ' (ผิดพลาด ' . count($result['errors']) . ')' : ''));
         admin_redirect();
         break;
+    case 'facebook_repost':
+        // After the owner deleted the Page post (e.g. to get a fresh link preview): forget it and post again now.
+        require_post();
+        $article = db_one('SELECT * FROM articles WHERE id = ?', [(int) $_POST['id']]);
+        if ($article) {
+            $result = facebook_post_article($article);
+            flash($result === null ? 'โพสต์ใหม่ลงเพจแล้ว' : 'โพสต์ไม่สำเร็จ: ' . $result);
+        }
+        admin_redirect();
+        break;
     case 'clicks':
         action_clicks();
         break;
@@ -271,7 +281,7 @@ function action_dashboard(): void
     $lastBreeds = is_file($dataDir . '/last-breeds.json') ? json_decode((string) file_get_contents($dataDir . '/last-breeds.json'), true) : null;
     $lastNews = is_file($dataDir . '/last-news.json') ? json_decode((string) file_get_contents($dataDir . '/last-news.json'), true) : null;
     $lastFacebook = is_file(facebook_status_file()) ? json_decode((string) file_get_contents(facebook_status_file()), true) : null;
-    $fbRecent = db_all('SELECT title, slug, fb_posted_at, fb_error FROM articles WHERE fb_posted_at IS NOT NULL OR fb_error IS NOT NULL
+    $fbRecent = db_all('SELECT id, title, slug, fb_posted_at, fb_error FROM articles WHERE fb_posted_at IS NOT NULL OR fb_error IS NOT NULL
                         ORDER BY COALESCE(fb_posted_at, published_at) DESC LIMIT 5');
     $lastIndexnow = is_file(indexnow_status_file()) ? json_decode((string) file_get_contents(indexnow_status_file()), true) : null;
     $indexnowSent = (int) db_value('SELECT COUNT(*) FROM articles WHERE indexnow_at IS NOT NULL');
@@ -331,7 +341,12 @@ function action_dashboard(): void
         <?php if ($fbRecent): ?>
           <ul class="small">
             <?php foreach ($fbRecent as $r): ?>
-              <li><?= e($r['title']) ?> — <?= $r['fb_posted_at'] ? 'โพสต์แล้ว ' . e($r['fb_posted_at']) : '<span class="error">' . e($r['fb_error']) . '</span>' ?></li>
+              <li><?= e($r['title']) ?> — <?= $r['fb_posted_at'] ? 'โพสต์แล้ว ' . e($r['fb_posted_at']) : '<span class="error">' . e($r['fb_error']) . '</span>' ?>
+                <?php if ($r['fb_posted_at'] && facebook_configured()): ?>
+                  <form method="post" action="<?= e(admin_url('facebook_repost')) ?>" style="display:inline" onsubmit="return confirm('โพสต์บทความนี้ลงเพจอีกครั้ง? ลบโพสต์เดิมบนเพจก่อน ไม่อย่างนั้นจะมีโพสต์ซ้ำ')">
+                    <?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $r['id'] ?>"><button class="linklike">โพสต์ใหม่</button>
+                  </form>
+                <?php endif; ?></li>
             <?php endforeach; ?>
           </ul>
         <?php endif; ?>
