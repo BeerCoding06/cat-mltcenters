@@ -1,4 +1,9 @@
 {
+ "adopt-adult-cat-or-kitten": {
+  "image": "/assets/img/articles/adopt-adult-cat-or-kitten.webp",
+  "author": "Guslin Al-Fikrah",
+  "source": "https://unsplash.com/photos/white-cat-with-kittens-i5tI_m3prA8"
+ },
  "automatic-cat-feeder-guide": {
   "image": "/assets/img/articles/automatic-cat-feeder-guide.webp",
   "author": "Quan Jing",
@@ -24,15 +29,45 @@
   "author": "Frederick Shaw",
   "source": "https://unsplash.com/photos/a-cat-eating-out-of-a-can-on-the-ground-wuMVEBAmuww"
  },
+ "cat-allergy-living": {
+  "image": "/assets/img/articles/cat-allergy-living.webp",
+  "author": "Adam Stefanca",
+  "source": "https://unsplash.com/photos/brown-maine-coon-cat-on-ottoman-kaywPrM99mI"
+ },
+ "cat-bath-guide": {
+  "image": "/assets/img/articles/cat-bath-guide.webp",
+  "author": "Dan Wayman",
+  "source": "https://unsplash.com/photos/orange-kitten-covered-by-white-towel-FIy2C-oZPgA"
+ },
  "cat-bed-guide": {
   "image": "/assets/img/articles/cat-bed-guide.webp",
   "author": "Aleksandar Cvetanovic",
   "source": "https://unsplash.com/photos/orange-tabby-cat-sleeping-on-white-pet-bed-A7nK49HCqSI"
  },
+ "cat-biting-hands": {
+  "image": "/assets/img/articles/cat-biting-hands.webp",
+  "author": "Nicholas Ng",
+  "source": "https://unsplash.com/photos/a-cat-being-pet-by-a-hand-Y1OeZ39gQik"
+ },
+ "cat-care-calendar-year": {
+  "image": "/assets/img/articles/cat-care-calendar-year.webp",
+  "author": "wenbin sia",
+  "source": "https://unsplash.com/photos/wooden-cat-figurine-with-perpetual-calendar-showing-march-21-CMu9tEDG_0E"
+ },
  "cat-carrier-guide": {
   "image": "/assets/img/articles/cat-carrier-guide-2.webp",
   "author": "Oles Borys",
   "source": "https://unsplash.com/photos/white-cat-with-orange-markings-in-a-clear-carrier-OBu_nabEpAw"
+ },
+ "cat-cold-symptoms": {
+  "image": "/assets/img/articles/cat-cold-symptoms.webp",
+  "author": "Kate Stone Matheson",
+  "source": "https://unsplash.com/photos/white-cat-sleeps-under-white-comforter-uy5t-CJuIK4"
+ },
+ "cat-cold-weather-care": {
+  "image": "/assets/img/articles/cat-cold-weather-care.webp",
+  "author": "Ryan Li",
+  "source": "https://unsplash.com/photos/a-cat-hiding-in-a-pile-of-green-blankets-96vAkoNLDZI"
  },
  "cat-collar-safety": {
   "image": "/assets/img/articles/cat-collar-safety.webp",
@@ -49,6 +84,11 @@
   "author": "Amigo Eugenito",
   "source": "https://unsplash.com/photos/orange-and-white-tabby-cat-sleeping-beside-window-5WPEDMgmQiw"
  },
+ "cat-constipation": {
+  "image": "/assets/img/articles/cat-constipation.webp",
+  "author": "Heyphotoshoot",
+  "source": "https://unsplash.com/photos/brown-tabby-cat-lying-on-gray-sofa-2JOpsSg0_Dw"
+ },
  "cat-cost-per-month": {
   "image": "/assets/img/articles/cat-cost-per-month.webp",
   "author": "Zheng Kai",
@@ -58,6 +98,11 @@
   "image": "/assets/img/articles/cat-dental-care.webp",
   "author": "Marlon Soares",
   "source": "https://unsplash.com/photos/white-and-brown-cat-with-mouth-open-NDe1cA_jb_4"
+ },
+ "cat-diarrhea-soft-stool": {
+  "image": "/assets/img/articles/cat-diarrhea-soft-stool.webp",
+  "author": "Bruno Guerrero",
+  "source": "https://unsplash.com/photos/tabby-cat-resting-on-a-rug-and-wooden-floor-vCEnMtQVSrA"
  },
  "cat-dry-food-guide": {
   "image": "/assets/img/articles/cat-dry-food-guide.webp",
@@ -69,15 +114,45 @@
   "author": "Hulki Okan Tabak",
   "source": "https://unsplash.com/photos/cats-eat-foods-JQN2JMdq3Yo"
  },
+ "cat-dry-skin-winter": {
+  "image": "/assets/img/articles/cat-dry-skin-winter.webp",
+  "author": "Volodymyr Dobrovolskyy",
+  "source": "https://unsplash.com/photos/a-close-up-of-a-cats-fur-fm-FXIrdI-A"
+ },
+ "cat-escape-balcony-safety": {
+  "image": "/assets/img/articles/cat-escape-balcony-safety.webp",
+  "author": "Shalev Cohen",
+  "source": "https://unsplash.com/photos/a-black-cat-peeks-over-a-balcony-railing-An7wyjTQIOc"
+ },
+ "cat-fireworks-fear": {
+  "image": "/assets/img/articles/cat-fireworks-fear.webp",
+  "author": "David Tyemnyák",
+  "source": "https://unsplash.com/photos/brown-tabby-cat-covered-with-white-blanket-cd-iay_oQOc"
+ },
  "cat-food-12-12": {
   "image": "/assets/img/articles/cat-food-12-12.webp",
   "author": "Tran Mau Tri Tam ✪",
   "source": "https://unsplash.com/photos/white-and-gray-cat-in-brown-cardboard-box-o2BEIJNN25U"
  },
+ "cat-food-label-reading": {
+  "image": "/assets/img/articles/cat-food-label-reading.webp",
+  "author": "Javier Garcia Chavez",
+  "source": "https://unsplash.com/photos/orange-cat-eating-dry-food-from-a-bowl-1V1xzKSqR14"
+ },
  "cat-food-pouch-guide": {
   "image": "/assets/img/articles/cat-food-pouch-guide.webp",
   "author": "Song Chen",
   "source": "https://unsplash.com/photos/a-tabby-cat-eats-from-a-small-dish-W0jR9oPy6I0"
+ },
+ "cat-food-storage": {
+  "image": "/assets/img/articles/cat-food-storage.webp",
+  "author": "Harshal",
+  "source": "https://unsplash.com/photos/an-orange-and-white-cat-sitting-next-to-a-bowl-of-food-0Y0lgKKUlA8"
+ },
+ "cat-fur-on-clothes": {
+  "image": "/assets/img/articles/cat-fur-on-clothes.webp",
+  "author": "Hendrik Kilimann",
+  "source": "https://unsplash.com/photos/short-furred-gray-and-white-cat-on-sofa-U_wL_gbaIjc"
  },
  "cat-games-at-home": {
   "image": "/assets/img/articles/cat-games-at-home.webp",
@@ -88,6 +163,11 @@
   "image": "/assets/img/articles/cat-grooming-brush-guide.webp",
   "author": "Shawn Rain",
   "source": "https://unsplash.com/photos/a-cat-laying-on-the-ground-being-petted-by-a-person-esLVhH5gRlE"
+ },
+ "cat-hairball-help": {
+  "image": "/assets/img/articles/cat-hairball-help.webp",
+  "author": "Nourieh Ferdosian",
+  "source": "https://unsplash.com/photos/a-cat-grooming-itself-on-a-ledge-D86vc0X-74w"
  },
  "cat-harness-leash": {
   "image": "/assets/img/articles/cat-harness-leash.webp",
@@ -108,6 +188,11 @@
   "image": "/assets/img/articles/cat-litter-box-guide.webp",
   "author": "Pedro Candeias",
   "source": "https://unsplash.com/photos/gray-persian-cat-T1ZaPD0KhFQ"
+ },
+ "cat-litter-clumping-problems": {
+  "image": "/assets/img/articles/cat-litter-clumping-problems.webp",
+  "author": "GALINA BOGDANOVA",
+  "source": "https://unsplash.com/photos/a-cat-peeking-through-a-hole-in-cardboard-fAQDMzIcG1M"
  },
  "cat-litter-no-smell": {
   "image": "/assets/img/articles/cat-litter-no-smell.webp",
@@ -139,10 +224,35 @@
   "author": "zeliha turk",
   "source": "https://unsplash.com/photos/a-tiny-golden-kitten-sleeping-in-a-white-box-CFUGu8jrLW0"
  },
+ "cat-nail-trimming": {
+  "image": "/assets/img/articles/cat-nail-trimming.webp",
+  "author": "Reinis Brūzītis",
+  "source": "https://unsplash.com/photos/a-close-up-of-a-cats-paw-with-extended-claws-XiFmYCogBTM"
+ },
+ "cat-night-zoomies": {
+  "image": "/assets/img/articles/cat-night-zoomies.webp",
+  "author": "Adél Grőber",
+  "source": "https://unsplash.com/photos/black-cat-with-yellow-eyes-GqNmg3BRFXA"
+ },
  "cat-not-drinking-water": {
   "image": "/assets/img/articles/cat-not-drinking-water.webp",
   "author": "Carolien van Oijen",
   "source": "https://unsplash.com/photos/cat-drinking-water-from-bowl-E5HmmWbknoQ"
+ },
+ "cat-payday-shopping-list": {
+  "image": "/assets/img/articles/cat-payday-shopping-list.webp",
+  "author": "Oli Zubenko",
+  "source": "https://unsplash.com/photos/a-cat-peeking-out-of-a-cardboard-box-kobBSNm3ecM"
+ },
+ "cat-peeing-outside-litter": {
+  "image": "/assets/img/articles/cat-peeing-outside-litter.webp",
+  "author": "Lena Five",
+  "source": "https://unsplash.com/photos/a-curious-cat-poses-in-the-bathroom-EiPqyGEoOQ0"
+ },
+ "cat-playpen-guide": {
+  "image": "/assets/img/articles/cat-playpen-guide.webp",
+  "author": "Kim Davies",
+  "source": "https://unsplash.com/photos/gray-kitten-sitting-on-floor-fEK4jvgnApg"
  },
  "cat-scratcher-guide": {
   "image": "/assets/img/articles/cat-scratcher-guide.webp",
@@ -158,6 +268,36 @@
   "image": "/assets/img/articles/cat-shedding-grooming.webp",
   "author": "Maryam Tello",
   "source": "https://unsplash.com/photos/a-person-gently-pets-a-beautiful-gray-cat-h3zs_-eqOEQ"
+ },
+ "cat-sitter-vs-pet-hotel": {
+  "image": "/assets/img/articles/cat-sitter-vs-pet-hotel.webp",
+  "author": "Hana Oliver",
+  "source": "https://unsplash.com/photos/brown-and-black-cat-looking-out-the-window-R8iXp6DPMGc"
+ },
+ "cat-sleep-hours": {
+  "image": "/assets/img/articles/cat-sleep-hours.webp",
+  "author": "Alex Mamedov",
+  "source": "https://unsplash.com/photos/a-cat-sleeping-under-a-blanket-on-a-sofa-ajn8aKQWT2k"
+ },
+ "cat-soup-broth": {
+  "image": "/assets/img/articles/cat-soup-broth.webp",
+  "author": "Adrian Vazquez",
+  "source": "https://unsplash.com/photos/tabby-cat-beside-glass-bowl-UlZM6iFj6gY"
+ },
+ "cat-spay-neuter-care": {
+  "image": "/assets/img/articles/cat-spay-neuter-care.webp",
+  "author": "Kristin Kenney",
+  "source": "https://unsplash.com/photos/tabby-cat-with-cone-and-bandage-nxZI1ztak0c"
+ },
+ "cat-stress-signs": {
+  "image": "/assets/img/articles/cat-stress-signs.webp",
+  "author": "Mikhail Volkov",
+  "source": "https://unsplash.com/photos/calico-cat-under-purple-blanket-s5WW6i25mZQ"
+ },
+ "cat-supplies-1-1-sale": {
+  "image": "/assets/img/articles/cat-supplies-1-1-sale.webp",
+  "author": "Super Tseng",
+  "source": "https://unsplash.com/photos/a-cat-poking-its-head-out-of-a-cardboard-box-Z6TjK2C6bis"
  },
  "cat-supplies-11-11": {
   "image": "/assets/img/articles/cat-supplies-11-11.webp",
@@ -194,6 +334,31 @@
   "author": "Zhen Yao",
   "source": "https://unsplash.com/photos/a-cute-cat-eating-a-treat-from-a-hand-WG-QdgWTZ_s"
  },
+ "cat-vaccination-basics": {
+  "image": "/assets/img/articles/cat-vaccination-basics.webp",
+  "author": "Sueda Güzeldere",
+  "source": "https://unsplash.com/photos/a-white-cat-being-examined-by-a-vet-BATIVPqWwqw"
+ },
+ "cat-vitamin-lickable": {
+  "image": "/assets/img/articles/cat-vitamin-lickable.webp",
+  "author": "Nikolett Emmert",
+  "source": "https://unsplash.com/photos/a-cat-looks-up-at-a-hand-offering-a-treat-UK_0t76zxuY"
+ },
+ "cat-vomiting-what-to-do": {
+  "image": "/assets/img/articles/cat-vomiting-what-to-do.webp",
+  "author": "Gaelle Marcel",
+  "source": "https://unsplash.com/photos/an-orange-cat-sleeps-peacefully-on-a-bed-f6ZQIQ6wAmE"
+ },
+ "cat-wand-toys-guide": {
+  "image": "/assets/img/articles/cat-wand-toys-guide.webp",
+  "author": "Anna Krylova",
+  "source": "https://unsplash.com/photos/tabby-cat-watching-feather-toy-WwuaGQcem3A"
+ },
+ "cat-water-fountain-cleaning": {
+  "image": "/assets/img/articles/cat-water-fountain-cleaning.webp",
+  "author": "Quan Jing",
+  "source": "https://unsplash.com/photos/a-cat-drinking-water-from-a-bowl-indoors-AtmF83lXl1Q"
+ },
  "cat-water-fountain-guide": {
   "image": "/assets/img/articles/cat-water-fountain-guide.webp",
   "author": "SMA Fatemi",
@@ -204,10 +369,20 @@
   "author": "Onur Çayır",
   "source": "https://unsplash.com/photos/a-calico-cat-eats-food-on-a-ledge--JFmImwyYX0"
  },
+ "cat-wet-vs-dry-food": {
+  "image": "/assets/img/articles/cat-wet-vs-dry-food.webp",
+  "author": "Kabo",
+  "source": "https://unsplash.com/photos/orange-tabby-cat-eating-on-black-ceramic-bowl-OouGoqQuf64"
+ },
  "catnip-guide": {
   "image": "/assets/img/articles/catnip-guide.webp",
   "author": "Tatyana Rubleva",
   "source": "https://unsplash.com/photos/cat-enjoys-catnip-7sdiFr7mco4"
+ },
+ "cats-and-kids": {
+  "image": "/assets/img/articles/cats-and-kids.webp",
+  "author": "Andy Luo",
+  "source": "https://unsplash.com/photos/two-hands-petting-a-ginger-cat-lying-down-ymITgrOdv2c"
  },
  "cheap-cat-condo-guide": {
   "image": "/assets/img/articles/cheap-cat-condo-guide.webp",
@@ -223,6 +398,11 @@
   "image": "/assets/img/articles/cheap-cat-litter-guide.webp",
   "author": "Piotr Musioł",
   "source": "https://unsplash.com/photos/white-cat-on-gray-sand-during-daytime-pUp2hXP1qpw"
+ },
+ "cheap-cat-water-fountain": {
+  "image": "/assets/img/articles/cheap-cat-water-fountain.webp",
+  "author": "Syawish Rehman",
+  "source": "https://unsplash.com/photos/black-and-white-cat-drinking-from-a-bowl-outdoors-clYey8zdFzM"
  },
  "cheap-wet-cat-food": {
   "image": "/assets/img/articles/cheap-wet-cat-food.webp",
@@ -244,10 +424,20 @@
   "author": "Tobias",
   "source": "https://unsplash.com/photos/brown-tabby-kitten-on-white-textile-2KZfAwi-0W4"
  },
+ "freeze-dried-cat-food-meal": {
+  "image": "/assets/img/articles/freeze-dried-cat-food-meal.webp",
+  "author": "Anna Krylova",
+  "source": "https://unsplash.com/photos/orange-cat-reaching-for-a-treat-from-a-human-hand-2jIXVtzbzlU"
+ },
  "freeze-dried-cat-treats": {
   "image": "/assets/img/articles/freeze-dried-cat-treats.webp",
   "author": "Sies Kranen",
   "source": "https://unsplash.com/photos/orange-cat-eating-treat-from-human-hand-UqZ1vBnhDsA"
+ },
+ "goat-milk-for-cats": {
+  "image": "/assets/img/articles/goat-milk-for-cats.webp",
+  "author": "Ibrahim guetar",
+  "source": "https://unsplash.com/photos/a-white-cat-eating-food-out-of-a-bowl-dvEJW14cV_Q"
  },
  "grain-free-cat-food-guide": {
   "image": "/assets/img/articles/grain-free-cat-food-guide.webp",
@@ -264,6 +454,16 @@
   "author": "Francis Painchaud",
   "source": "https://unsplash.com/photos/a-white-cat-is-being-fed-by-a-person-vSaiyYyS0cw"
  },
+ "high-protein-cat-food": {
+  "image": "/assets/img/articles/high-protein-cat-food.webp",
+  "author": "catsinamman",
+  "source": "https://unsplash.com/photos/a-cat-eating-a-piece-of-food-on-the-ground-JiA65SXRYa4"
+ },
+ "how-much-to-feed-cat": {
+  "image": "/assets/img/articles/how-much-to-feed-cat.webp",
+  "author": "Sincerely Media",
+  "source": "https://unsplash.com/photos/white-cat-on-blue-pet-bowl-Bdy4MDCb89s"
+ },
  "how-often-change-cat-litter": {
   "image": "/assets/img/articles/how-often-change-cat-litter.webp",
   "author": "Ricardo L",
@@ -274,15 +474,30 @@
   "author": "Vivek Doshi",
   "source": "https://unsplash.com/photos/brown-tabby-cat-on-blue-ceramic-bowl-3OoMVzDbbrw"
  },
+ "introduce-new-cat": {
+  "image": "/assets/img/articles/introduce-new-cat.webp",
+  "author": "JOGphotos",
+  "source": "https://unsplash.com/photos/a-couple-of-cats-laying-on-top-of-a-blanket-wy8xBa0JHbg"
+ },
  "kaniva-cat-food-guide": {
   "image": "/assets/img/articles/kaniva-cat-food-guide.webp",
   "author": "Connor O'Reilly",
   "source": "https://unsplash.com/photos/calico-cat-sits-by-an-empty-food-bowl-fhOt4Lhq8-A"
  },
+ "kasty-tofu-litter-guide": {
+  "image": "/assets/img/articles/kasty-tofu-litter-guide.webp",
+  "author": "Dušan veverkolog",
+  "source": "https://unsplash.com/photos/short-fur-beige-and-brown-cat-near-green-wall-k9CJkf25vbs"
+ },
  "kitten-care-1-3-months": {
   "image": "/assets/img/articles/kitten-care-1-3-months.webp",
   "author": "Kote Puerto",
   "source": "https://unsplash.com/photos/white-and-gray-kitten-on-white-textile-so5nsYDOdxw"
+ },
+ "kitten-first-week-home": {
+  "image": "/assets/img/articles/kitten-first-week-home.webp",
+  "author": "Edgar",
+  "source": "https://unsplash.com/photos/brown-tabby-kitten-sitting-on-floor-nKC772R_qog"
  },
  "kitten-food-guide": {
   "image": "/assets/img/articles/kitten-food-guide.webp",
@@ -299,20 +514,55 @@
   "author": "Lars Van Poucke",
   "source": "https://unsplash.com/photos/an-orange-cat-playing-with-a-toy-on-a-bed-Coy8O5xhzAc"
  },
+ "leave-cat-home-alone-days": {
+  "image": "/assets/img/articles/leave-cat-home-alone-days.webp",
+  "author": "Martin Sanchez",
+  "source": "https://unsplash.com/photos/brown-tabby-cat-near-window-gSvhINoYA-E"
+ },
  "lickable-cat-treats-guide": {
   "image": "/assets/img/articles/lickable-cat-treats-guide.webp",
   "author": "Sergej *****",
   "source": "https://unsplash.com/photos/tortoiseshell-cat-reaching-for-treat-near-a-painting-S5Y0Etaf40Q"
+ },
+ "litter-box-placement": {
+  "image": "/assets/img/articles/litter-box-placement.webp",
+  "author": "Jose Hernandez-Uribe",
+  "source": "https://unsplash.com/photos/orange-tabby-cat-lying-on-bed-toTwUApQ4v4"
+ },
+ "lost-cat-what-to-do": {
+  "image": "/assets/img/articles/lost-cat-what-to-do.webp",
+  "author": "Shawn Rain",
+  "source": "https://unsplash.com/photos/orange-tabby-cat-walking-on-pavement-cfoUe8DO5jw"
  },
  "low-sodium-cat-food": {
   "image": "/assets/img/articles/low-sodium-cat-food.webp",
   "author": "roselino rocha",
   "source": "https://unsplash.com/photos/calico-cat-next-to-food-bowl-under-striped-sunlight-4YE65nzrvtE"
  },
+ "matatabi-stick-guide": {
+  "image": "/assets/img/articles/matatabi-stick-guide.webp",
+  "author": "Fernando Vega",
+  "source": "https://unsplash.com/photos/an-orange-cat-is-chewing-on-a-stick-4HhziEmjxVg"
+ },
  "me-o-cat-food-guide": {
   "image": "/assets/img/articles/me-o-cat-food-guide.webp",
   "author": "Zhen Yao",
   "source": "https://unsplash.com/photos/a-fluffy-golden-cat-eating-from-a-metal-bowl-_CqTK-GE3lo"
+ },
+ "moving-house-with-cat": {
+  "image": "/assets/img/articles/moving-house-with-cat.webp",
+  "author": "Jiawei Zhao",
+  "source": "https://unsplash.com/photos/tuxedo-cat-in-brown-cardboard-box-BsXeYX3efOI"
+ },
+ "multi-cat-home-setup": {
+  "image": "/assets/img/articles/multi-cat-home-setup.webp",
+  "author": "Nathalie Jolie",
+  "source": "https://unsplash.com/photos/two-brown-tabby-cats-on-wood-planks-nKzeG3iE_Qg"
+ },
+ "nekko-cat-food-guide": {
+  "image": "/assets/img/articles/nekko-cat-food-guide.webp",
+  "author": "nicola dowie",
+  "source": "https://unsplash.com/photos/a-siamese-cat-with-blue-eyes-licking-wet-food-aG6954z64Jo"
  },
  "new-cat-checklist": {
   "image": "/assets/img/articles/new-cat-checklist.webp",
@@ -323,6 +573,31 @@
   "image": "/assets/img/articles/new-cat-owner-faq.webp",
   "author": "Humberto Arellano",
   "source": "https://unsplash.com/photos/woman-and-cat-joining-hands-N_G2Sqdy9QY"
+ },
+ "new-year-cat-care-goals": {
+  "image": "/assets/img/articles/new-year-cat-care-goals.webp",
+  "author": "Jasmin Schuler",
+  "source": "https://unsplash.com/photos/black-and-white-cat-lyes-beside-lighted-string-light-PUTVh0Z_qNQ"
+ },
+ "new-year-gift-exchange-cat": {
+  "image": "/assets/img/articles/new-year-gift-exchange-cat.webp",
+  "author": "zeliha turk",
+  "source": "https://unsplash.com/photos/a-fluffy-kitten-sleeps-soundly-in-a-white-box-gpgQIYgiU-I"
+ },
+ "new-year-gifts-for-your-cat": {
+  "image": "/assets/img/articles/new-year-gifts-for-your-cat.webp",
+  "author": "Fassi Baig",
+  "source": "https://unsplash.com/photos/a-cat-with-a-red-bow-vuBrFeu_mPI"
+ },
+ "new-year-party-cat-safety": {
+  "image": "/assets/img/articles/new-year-party-cat-safety.webp",
+  "author": "David Köhler",
+  "source": "https://unsplash.com/photos/a-cat-is-sitting-in-a-christmas-ornament-u-BcYdXax-g"
+ },
+ "orphan-kitten-care": {
+  "image": "/assets/img/articles/orphan-kitten-care.webp",
+  "author": "Mike Stimpson",
+  "source": "https://unsplash.com/photos/a-small-orange-kitten-sitting-on-top-of-a-bed-zXunvWE06IE"
  },
  "overweight-cat-diet": {
   "image": "/assets/img/articles/overweight-cat-diet.webp",
@@ -339,6 +614,11 @@
   "author": "Reno Laithienne",
   "source": "https://unsplash.com/photos/brown-tabby-cat-QVfbZ9hE4mE"
  },
+ "pramy-cat-food-guide": {
+  "image": "/assets/img/articles/pramy-cat-food-guide.webp",
+  "author": "Angelo Cabaluna",
+  "source": "https://unsplash.com/photos/a-cat-eating-food-out-of-a-white-container-GqtMVtYhZCI"
+ },
  "raised-cat-bowl-guide": {
   "image": "/assets/img/articles/raised-cat-bowl-guide.webp",
   "author": "Ayhan Jibrael",
@@ -353,6 +633,11 @@
   "image": "/assets/img/articles/senior-cat-food-guide.webp",
   "author": "Nathan Fertig",
   "source": "https://unsplash.com/photos/selective-focus-photography-of-black-white-and-brown-cat-lying-on-wooden-table-0EuYG6tl01Y"
+ },
+ "senior-cat-home-care": {
+  "image": "/assets/img/articles/senior-cat-home-care.webp",
+  "author": "OğuzHan",
+  "source": "https://unsplash.com/photos/a-tabby-cat-sits-outdoors-in-sunlight-Q6Oj9gFp9J4"
  },
  "sterilized-cat-food-guide": {
   "image": "/assets/img/articles/sterilized-cat-food-guide.webp",
@@ -369,9 +654,24 @@
   "author": "Neakasa",
   "source": "https://unsplash.com/photos/a-cat-sitting-in-a-litter-box-on-the-floor-jyGLSds74D4"
  },
+ "tofu-litter-flush-toilet": {
+  "image": "/assets/img/articles/tofu-litter-flush-toilet.webp",
+  "author": "Nana Fuzimi",
+  "source": "https://unsplash.com/photos/a-cat-sitting-on-top-of-a-bath-tub-pvPBSP0qG_Y"
+ },
+ "travel-with-cat-by-car": {
+  "image": "/assets/img/articles/travel-with-cat-by-car.webp",
+  "author": "Jacob Thorson",
+  "source": "https://unsplash.com/photos/a-cat-looking-out-a-car-window-1mWDqQtNq_s"
+ },
  "wet-food-brands-compared": {
   "image": "/assets/img/articles/wet-food-brands-compared.webp",
   "author": "Augusto Pinheiro",
   "source": "https://unsplash.com/photos/a-black-and-white-cat-sitting-next-to-a-bowl-pSBohb9xJzw"
+ },
+ "whiskas-cat-food-guide": {
+  "image": "/assets/img/articles/whiskas-cat-food-guide.webp",
+  "author": "Konstantinos Feggoulis",
+  "source": "https://unsplash.com/photos/cat-eating-cat-food-in-pet-bowl-q9HWfccm4-0"
  }
 }
