@@ -418,3 +418,43 @@ function article_cover_url(array $article): string
     }
     return $cover !== '' && $cover[0] === '/' ? url(ltrim($cover, '/')) : $cover;
 }
+
+/** Share pictures for Facebook & co.: 1200x630 JPEG copies of article covers (WebP is not always picked up). */
+const ARTICLE_OG_DIR = APP_ROOT . '/data/og';
+
+/** Public address of the article's share picture, or '' when it has no cover on this site. */
+function article_og_url(array $article): string
+{
+    $cover = APP_ROOT . (string) $article['cover_image'];
+    if (strpos((string) $article['cover_image'], '/assets/') !== 0 || !is_file($cover)) {
+        return '';
+    }
+    return abs_url('og/' . rawurlencode($article['slug']) . '.jpg') . '?v=' . filemtime($cover);
+}
+
+/** Path of the article's share JPEG, made from its cover on first request (and again when the cover changes). */
+function article_og_file(array $article): ?string
+{
+    $cover = APP_ROOT . (string) $article['cover_image'];
+    if (strpos((string) $article['cover_image'], '/assets/') !== 0 || !is_file($cover)) {
+        return null;
+    }
+    $file = ARTICLE_OG_DIR . '/' . $article['slug'] . '.jpg';
+    if (is_file($file) && filemtime($file) >= filemtime($cover)) {
+        return $file;
+    }
+    $src = @imagecreatefromstring((string) file_get_contents($cover));
+    if (!$src) {
+        return null;
+    }
+    $out = imagecreatetruecolor(1200, 630);
+    photo_cover($out, $src, 1200, 630, 0.5);
+    imagedestroy($src);
+    if (!is_dir(ARTICLE_OG_DIR)) {
+        mkdir(ARTICLE_OG_DIR, 0775, true);
+    }
+    $ok = imagejpeg($out, $file, 85);
+    imagedestroy($out);
+    return $ok ? $file : null;
+}
+

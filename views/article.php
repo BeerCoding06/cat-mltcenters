@@ -12,6 +12,11 @@ $canonical = abs_url('a/' . rawurlencode($article['slug']));
 $noindex = $isPreview;
 $coverUrl = article_cover_url($article);
 $ogImage = $coverUrl !== '' ? ($coverUrl[0] === '/' ? abs_url(ltrim($coverUrl, '/')) : $coverUrl) : article_first_product_image($article['body']);
+// Facebook shows the big banner preview only for a picture it can read and that is wide enough: a 1200x630 JPEG.
+if (!$isPreview && ($ogJpeg = article_og_url($article)) !== '') {
+    $ogImage = $ogJpeg;
+    $ogImageSize = [1200, 630];
+}
 $ogType = 'article';
 // Shown near the top and in the phone deal bar: the article's own products first, else the category's best deals.
 $topPicks = $mentioned;

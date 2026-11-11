@@ -33,6 +33,8 @@ if ($path === '') {
     render('alert', ['message' => alert_handle_link($m[1], (string) ($_GET['t'] ?? '')), 'product' => null]);
 } elseif (preg_match('#^media/breeds/([^/]+\.(?:jpg|png|webp))$#u', $path, $m)) {
     page_media(BREED_PHOTO_DIR, $m[1]);
+} elseif (preg_match('#^og/([^/]+)\.jpg$#u', $path, $m)) {
+    page_article_og($m[1]);
 } elseif ($path === 'sitemap.xml') {
     page_sitemap();
 } elseif ($path === 'robots.txt') {
@@ -331,6 +333,18 @@ function page_go_promo(int $id): void
     header('X-Robots-Tag: noindex, nofollow');
     header('Cache-Control: no-store');
     header('Location: ' . $promo['url'], true, 302);
+}
+
+/** An article's share picture (og:image) as JPEG; live articles only. */
+function page_article_og(string $slug): void
+{
+    $article = article_by_slug($slug);
+    $file = $article && article_is_live($article) ? article_og_file($article) : null;
+    if (!$file) {
+        render('404', [], 404);
+        return;
+    }
+    page_media(dirname($file), basename($file));
 }
 
 /** Serve a downloaded photo from the data volume (data/ itself is not web-accessible). */

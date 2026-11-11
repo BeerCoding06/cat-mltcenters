@@ -31,6 +31,12 @@ $shareImage = !empty($ogImage) ? $ogImage : abs_url('assets/og-default.jpg');
   <meta property="og:url" content="<?= e($canonical) ?>">
   <?php endif; ?>
   <meta property="og:image" content="<?= e($shareImage) ?>">
+  <?php if (!empty($ogImageSize)): ?>
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="<?= (int) $ogImageSize[0] ?>">
+  <meta property="og:image:height" content="<?= (int) $ogImageSize[1] ?>">
+  <meta property="og:image:alt" content="<?= e($pageTitle) ?>">
+  <?php endif; ?>
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="<?= e($shareImage) ?>">
   <!-- Fonts: Mali + IBM Plex Sans Thai Looped (SIL Open Font License), served from this site (assets/fonts, @font-face
