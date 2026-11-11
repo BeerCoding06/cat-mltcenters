@@ -1505,7 +1505,8 @@
     careCard.appendChild(h('p', { text: weak.care.sick ? 'ป่วยหนักและอ่อนแรงมาก ต้องการยา อาหาร และน้ำด่วน'
       : 'หิวและอ่อนแรงมาก ต้องการอาหารและน้ำด่วน' }));
     careCard.appendChild(h('div', { class: 'pet-care-actions' }, [
-      h('button', { type: 'button', class: 'btn btn-deal', text: 'ไปดูแลเลย', onclick: function () {
+      h('button', { type: 'button', class: 'btn btn-deal', text: 'ไปดูแลเลย', onclick: function (e) {
+        e.stopPropagation(); // or the outside-click handler shuts the circle straight away
         closeCareCard();
         if (pets[weak.id]) { openCatRadial(pets[weak.id]); }
       } }),
@@ -1542,7 +1543,8 @@
   document.body.appendChild(radial);
   var radialFor = null;  // pet the circle is open for, or 'all'
 
-  /** Lay out buttons on rings around (cx, cy). arc = [startDeg, endDeg]; 0deg = right, -90deg = up. */
+  /** Lay out buttons on rings around (cx, cy). arc = [startDeg, endDeg]; 0deg = right, -90deg = up.
+   *  A ring may set `turn` (degrees) to rotate it, so its icons sit between the ones on the ring inside. */
   function openRadial(cx, cy, items, rings, arc, owner) {
     radial.textContent = '';
     radial.style.left = cx + 'px';
@@ -1554,7 +1556,7 @@
         var it = items[placed];
         var span = arc[1] - arc[0];
         var full = Math.abs(span) >= 360;
-        var angle = (arc[0] + span * (full ? k / n : (n === 1 ? 0.5 : k / (n - 1)))) * Math.PI / 180;
+        var angle = (arc[0] + (ring.turn || 0) + span * (full ? k / n : (n === 1 ? 0.5 : k / (n - 1)))) * Math.PI / 180;
         var btn = h('button', { type: 'button', class: 'pet-radial-item tone-' + it.tone, role: 'menuitem', 'aria-label': it.label,
           onclick: (function (fn) { return function (e) { e.stopPropagation(); fn(); closeRadial(); }; })(it.run) }, [
           iconSvg(it.icon),
@@ -1616,14 +1618,28 @@
     var items = care.concat(commandItems([pet.cfg.id])).concat([{ icon: 'edit', label: 'แก้ไข ' + pet.cfg.name, short: 'แก้ไขแมว', tone: 'ink', run: function () {
       openDrawer(pet.cfg.id);
     } }]);
-    var r = Math.max(132, pet.w * 0.8); // room for 13 icons with labels
+    // Phones: one ring of 13-14 icons is too tight for the labels, so use two (care + first commands inside),
+    // with smaller buttons (style.css) and the outer ring turned half a step so labels don't stack.
+    var narrow = window.innerWidth < 480;
+    var inner = Math.min(6, Math.ceil(items.length / 2));
+    var outer = items.length - inner;
+    var rings = narrow ? [{ r: 84, count: inner }, { r: 146, count: outer, turn: 180 / outer }]
+      : [{ r: Math.max(132, pet.w * 0.8), count: items.length }]; // room for 13 icons with labels
+    var r = rings[rings.length - 1].r;
+    var pad = narrow ? 34 : 28; // phones: wide labels on the side icons need the extra room
     // Centre on the sitting cat's body (the frame box leaves room for walking tails on the right).
     var cx = pet.x + pet.w * 0.48;
     var cy = pet.y + pet.h * 0.55;
-    cx = Math.max(r + 28, Math.min(window.innerWidth - r - 28, cx));
-    cy = Math.max(r + 28, Math.min(window.innerHeight - r - 28, cy));
-    openRadial(cx, cy, items, [{ r: r, count: items.length }], [-90, 270], pet);
+    cx = Math.max(r + pad, Math.min(window.innerWidth - r - pad, cx));
+    cy = Math.max(r + pad, Math.min(window.innerHeight - r - pad - (narrow ? 14 : 0), cy));
+    openRadial(cx, cy, items, rings, [-90, 270], pet);
     showCareBars(pet);
+    if (narrow && !careBars.hidden) {
+      // The rings fill the space under the cat, so move the bars under the circle (or over it if the screen ends first).
+      var bh = careBars.offsetHeight;
+      careBars.style.left = cx + 'px';
+      careBars.style.top = (cy + r + 46 + bh < window.innerHeight - 8 ? cy + r + 46 : cy - r - 32 - bh) + 'px';
+    }
   }
 
   // The 🐾 button: commands for every cat, plus design and show/hide.
