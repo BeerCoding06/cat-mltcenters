@@ -52,7 +52,8 @@ return [
     ],
 
     // Pins each article with a cover to a Pinterest board (bin/post-pinterest.php). Needs an app at developers.pinterest.com
-    // with pins:write access; refresh_token comes from its OAuth flow and is swapped for access tokens on each run.
+    // with pins:write access. Set app_id and app_secret, then connect the account and pick the board in admin › Pinterest
+    // (kept in data/pinterest.json); refresh_token and board_id here are only needed to skip that page.
     'pinterest' => [
         'app_id'        => '',
         'app_secret'    => '',

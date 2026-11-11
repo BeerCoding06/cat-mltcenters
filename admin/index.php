@@ -105,6 +105,29 @@ switch ($action) {
     case 'share':
         action_share();
         break;
+    case 'pinterest':
+        action_pinterest();
+        break;
+    case 'pinterest_connect':
+        require_post();
+        $_SESSION['pinterest_state'] = bin2hex(random_bytes(16));
+        header('Location: ' . pinterest_authorize_url($_SESSION['pinterest_state']), true, 303);
+        exit;
+    case 'pinterest_board':
+        require_post();
+        pinterest_store_save(['board_id' => (string) ($_POST['board_id'] ?? ''), 'board_name' => (string) ($_POST['board_name'] ?? '')]);
+        flash('บันทึกบอร์ดแล้ว ระบบจะเริ่มปักหมุดภายใน 10 นาที');
+        admin_redirect('pinterest');
+        break;
+    case 'pinterest_now':
+        require_post();
+        $result = pinterest_post_due();
+        $result['finished_at'] = now();
+        file_put_contents(pinterest_status_file(), json_encode($result, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        flash($result['stopped'] ?: ($result['pinned'] ? 'ปักหมุดแล้ว: ' . implode(', ', $result['pinned'])
+            : ($result['errors'] ? 'ผิดพลาด: ' . implode(' / ', $result['errors']) : 'ยังไม่ถึงเวลาปักหมุดชิ้นต่อไป (เว้นระยะระหว่างหมุด)')));
+        admin_redirect('pinterest');
+        break;
     case 'share_group_add':
         require_post();
         $name = trim((string) ($_POST['name'] ?? ''));
@@ -960,6 +983,86 @@ function click_source_type(string $referer): string
         }
     }
     return $path === '/' ? 'หน้าแรก' : 'อื่นๆ';
+}
+
+/** Pinterest: connect the account (OAuth), pick the board, see what was pinned. */
+function action_pinterest(): void
+{
+    $store = pinterest_store();
+    $p = pinterest_config();
+    $boards = [];
+    $boardError = null;
+    if (pinterest_app_ready() && ($p['refresh_token'] ?? '') !== '') {
+        list($boards, $boardError) = pinterest_boards();
+    }
+    $last = is_file(pinterest_status_file()) ? json_decode((string) file_get_contents(pinterest_status_file()), true) : null;
+    $pinned = (int) db_value('SELECT COUNT(*) FROM articles WHERE pin_id IS NOT NULL');
+    $waiting = (int) db_value('SELECT COUNT(*) FROM articles WHERE ' . ARTICLE_LIVE_SQL . " AND cover_image <> '' AND pin_id IS NULL", [now()]);
+
+    admin_header('Pinterest');
+    ?>
+    <div class="toolbar"><h1>Pinterest</h1></div>
+    <section class="panel">
+      <h2>1. แอป Pinterest</h2>
+      <?php if (pinterest_app_ready()): ?>
+        <p>✓ ตั้งค่า PINTEREST_APP_ID และ PINTEREST_APP_SECRET แล้ว</p>
+      <?php else: ?>
+        <p>ยังไม่ได้ตั้งค่า ใส่ <code>PINTEREST_APP_ID</code> และ <code>PINTEREST_APP_SECRET</code> จากแอปที่ developers.pinterest.com ใน Dokploy › Environment แล้ว Redeploy</p>
+      <?php endif; ?>
+      <p class="muted small">Redirect URI ที่ต้องใส่ในหน้าตั้งค่าแอป: <code><?= e(pinterest_redirect_uri()) ?></code></p>
+    </section>
+
+    <section class="panel">
+      <h2>2. เชื่อมบัญชี</h2>
+      <?php if (($p['refresh_token'] ?? '') !== ''): ?>
+        <p>✓ เชื่อมแล้ว<?= !empty($store['connected_at']) ? ' เมื่อ ' . e(thai_date($store['connected_at'])) : '' ?><?= !empty($store['refresh_expires_at']) ? ' · ต้องเชื่อมใหม่ก่อน ' . e(thai_date($store['refresh_expires_at'])) : '' ?></p>
+      <?php endif; ?>
+      <?php if (pinterest_app_ready()): ?>
+        <form method="post" action="<?= e(admin_url('pinterest_connect')) ?>"><?= csrf_field() ?>
+          <button class="btn <?= ($p['refresh_token'] ?? '') !== '' ? 'btn-ghost' : 'btn-deal' ?>"><?= ($p['refresh_token'] ?? '') !== '' ? 'เชื่อมใหม่' : 'เชื่อมบัญชี Pinterest' ?></button>
+        </form>
+      <?php else: ?>
+        <p class="muted">ตั้งค่าข้อ 1 ก่อน</p>
+      <?php endif; ?>
+    </section>
+
+    <section class="panel">
+      <h2>3. บอร์ดที่จะปักหมุด</h2>
+      <?php if ($boardError): ?>
+        <p class="error"><?= e($boardError) ?></p>
+      <?php elseif ($boards): ?>
+        <form class="inline-search" method="post" action="<?= e(admin_url('pinterest_board')) ?>">
+          <?= csrf_field() ?>
+          <select name="board_id" onchange="this.form.board_name.value = this.options[this.selectedIndex].text">
+            <?php foreach ($boards as $id => $name): ?>
+              <option value="<?= e($id) ?>"<?= (string) ($p['board_id'] ?? '') === (string) $id ? ' selected' : '' ?>><?= e($name) ?></option>
+            <?php endforeach; ?>
+          </select>
+          <input type="hidden" name="board_name" value="<?= e(reset($boards)) ?>">
+          <button class="btn btn-deal">ใช้บอร์ดนี้</button>
+        </form>
+      <?php elseif (($p['refresh_token'] ?? '') !== ''): ?>
+        <p class="muted">บัญชีนี้ยังไม่มีบอร์ด สร้างบอร์ดใน Pinterest ก่อน เช่น "ของใช้แมว คัดมาเหมียว" แล้วรีเฟรชหน้านี้</p>
+      <?php else: ?>
+        <p class="muted">เชื่อมบัญชีก่อน</p>
+      <?php endif; ?>
+    </section>
+
+    <section class="panel">
+      <h2>สถานะ</h2>
+      <p>ปักหมุดแล้ว <strong><?= number_format($pinned) ?></strong> บทความ · รอปักหมุด <?= number_format($waiting) ?> บทความ
+        · ห่างกันอย่างน้อย <?= (int) ($p['gap_minutes'] ?? 120) ?> นาที</p>
+      <?php if ($last): ?>
+        <p class="muted small">รอบล่าสุด <?= e((string) ($last['finished_at'] ?? '')) ?>
+          <?= !empty($last['stopped']) ? '· ' . e($last['stopped']) : '' ?>
+          <?= !empty($last['errors']) ? '· ผิดพลาด: ' . e(implode(' / ', $last['errors'])) : '' ?></p>
+      <?php endif; ?>
+      <?php if (pinterest_configured()): ?>
+        <form method="post" action="<?= e(admin_url('pinterest_now')) ?>"><?= csrf_field() ?><button class="btn btn-ghost">ปักหมุดชิ้นต่อไปตอนนี้</button></form>
+      <?php endif; ?>
+    </section>
+    <?php
+    admin_footer();
 }
 
 /** Share kit: posts ready to paste into Facebook groups, which group got which article, and when. */
