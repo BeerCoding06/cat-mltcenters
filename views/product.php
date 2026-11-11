@@ -79,7 +79,7 @@ if ($product['image_url'] !== '') {
           <input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
           <button class="btn btn-ghost">รับแจ้งเตือน</button>
         </span>
-        <small>ใช้อีเมลนี้เพื่อแจ้งราคาสินค้านี้เท่านั้น ยกเลิกได้จากลิงก์ในทุกอีเมล</small>
+        <small>ใช้อีเมลนี้เพื่อแจ้งราคาสินค้านี้เท่านั้น ยกเลิกได้จากลิงก์ในทุกอีเมล · <a href="<?= e(url('privacy')) ?>">นโยบายความเป็นส่วนตัว</a></small>
       </form>
     <?php endif; ?>
     <?php

@@ -43,6 +43,8 @@ if ($path === '') {
     echo indexnow_key();
 } elseif ($path === 'about') {
     render('about');
+} elseif ($path === 'privacy') {
+    render('privacy');
 } elseif ($path === 'game') {
     render('game', ['articles' => articles_published(3)]);
 } elseif ($path === 'deals') {

@@ -46,6 +46,9 @@ return [
     // The token is a long-lived Page access token with pages_manage_posts — keep it out of git and chat.
     // Price-drop alerts by email (inc/alerts.php), sent through Resend (resend.com). The form on product pages
     // stays hidden until both are set; `from` must be on a domain verified in Resend, e.g. 'คัดมาเหมียว <deals@mltcenters.com>'.
+    // Shown on /privacy as the address for data requests; leave empty to point people to the Facebook Page instead.
+    'contact_email' => '',
+
     'mail' => [
         'resend_key' => '',
         'from'       => '',

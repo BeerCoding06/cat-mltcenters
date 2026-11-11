@@ -77,6 +77,7 @@ $shareImage = !empty($ogImage) ? $ogImage : abs_url('assets/og-default.jpg');
       </p>
       <p class="footer-links">
         <a href="<?= e(url('about')) ?>">เกี่ยวกับเรา</a> ·
+        <a href="<?= e(url('privacy')) ?>">นโยบายความเป็นส่วนตัว</a> ·
         <a href="<?= e(url('sitemap.xml')) ?>">แผนผังเว็บไซต์</a> ·
         <a href="<?= e((string) config('facebook_url')) ?>" rel="noopener me" target="_blank">เพจ Facebook</a> ·
         <?php if (config('line_oa_url')): ?><a href="<?= e((string) config('line_oa_url')) ?>" rel="noopener" target="_blank">รับดีลทาง LINE</a> ·<?php endif; ?>
